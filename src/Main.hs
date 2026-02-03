@@ -5,6 +5,8 @@ import QLP.Unify
 import QLP.Search
 import QLP.Backend.Hilbert
 import qualified Data.Map.Strict as M
+import System.Environment (getArgs)
+
 
 showSubst :: Subst -> String
 showSubst s =
@@ -18,6 +20,12 @@ showSubstFor xs s =
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let modelPath = case args of
+        ["--model", fp] -> fp
+        _ -> "hilbert.conf"
+  model <- loadModelOrDefault modelPath
+
   putStrLn "QLP unify smoke test"
 
   let t1 = TFun "f" [TVar "X", TFun "a" []]
@@ -65,8 +73,6 @@ main = do
   let qprog = [c1, c2]
 
   let g = Goal [Atom "Q" [TVar "Y"]] []
-
-  model <- loadModelFromFile "hilbert.conf"
 
   let qsols = take 3 (solveQLP model qprog g emptySubst 0)
   mapM_ (putStrLn . showSubstFor ["Y"]) qsols

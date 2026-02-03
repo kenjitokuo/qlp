@@ -5,6 +5,7 @@ import qualified Data.Map.Strict as M
 import QLP.Syntax
 import System.IO (withFile, IOMode(ReadMode), hSetEncoding, utf8, hGetContents)
 import Control.Exception (evaluate)
+import System.Directory (doesFileExist)
 
 
 data HilbertModel = HilbertModel
@@ -149,3 +150,8 @@ dropWhileEnd p = reverse . dropWhile p . reverse
 
 isSpace :: Char -> Bool
 isSpace c = c == ' ' || c == '\t' || c == '\r'
+
+loadModelOrDefault :: FilePath -> IO HilbertModel
+loadModelOrDefault fp = do
+  ok <- doesFileExist fp
+  if ok then loadModelFromFile fp else pure defaultModel
