@@ -47,7 +47,7 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 bindir     = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\bin"
-libdir     = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\lib\\x86_64-windows-ghc-9.10.3-b42a\\qlp-0.1.0.0-EoacUnrnt7V8trGnX6j0RY-qlp"
+libdir     = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\lib\\x86_64-windows-ghc-9.10.3-b42a\\qlp-0.1.0.0-Hvnj9Ahaam6JFSOKC81SVs-qlp"
 dynlibdir  = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\lib\\x86_64-windows-ghc-9.10.3-b42a"
 datadir    = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\share\\x86_64-windows-ghc-9.10.3-b42a\\qlp-0.1.0.0"
 libexecdir = "C:\\Users\\yue\\qlp\\.stack-work\\install\\664dda1e\\libexec\\x86_64-windows-ghc-9.10.3-b42a\\qlp-0.1.0.0"
