@@ -6,6 +6,7 @@ import QLP.Syntax
 import System.IO (withFile, IOMode(ReadMode), hSetEncoding, utf8, hGetContents)
 import Control.Exception (evaluate)
 import System.Directory (doesFileExist)
+import qualified Data.List as L
 
 
 data HilbertModel = HilbertModel
@@ -67,21 +68,10 @@ matSub a b = zipWith (zipWith (-)) a b
 
 matMul :: Mat -> Mat -> Mat
 matMul a b =
-  let bt = transpose b
+  let bt = L.transpose b
   in [[ sum [ aik * bkj | (aik, bkj) <- zip ar bc ] | bc <- bt ] | ar <- a]
 
-transpose :: Mat -> Mat
-transpose xs =
-  case sequence (map uncons xs) of
-    Nothing -> []
-    Just ys ->
-      let hs = map fst ys
-          ts = map snd ys
-      in hs : transpose ts
 
-uncons :: [a] -> Maybe (a, [a])
-uncons [] = Nothing
-uncons (x:xs) = Just (x, xs)
 
 
 frobenius :: Mat -> Double
