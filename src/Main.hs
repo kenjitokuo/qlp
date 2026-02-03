@@ -65,8 +65,12 @@ main = do
   let qprog = [c1, c2]
 
   let g = Goal [Atom "Q" [TVar "Y"]] []
-  let qsols = take 3 (solveQLP defaultModel qprog g emptySubst 0)
+
+  model <- loadModelFromFile "hilbert.conf"
+
+  let qsols = take 3 (solveQLP model qprog g emptySubst 0)
   mapM_ (putStrLn . showSubstFor ["Y"]) qsols
+
   putStrLn "Hilbert commutativity quick check"
-  print (commutes defaultModel (Atom "P" []) (Atom "Q" []))  -- Z0 with Z1: commutes
-  print (commutes defaultModel (Atom "P" []) (Atom "R" []))  -- Z0 with X+: generally not commute
+  print (commutes model (Atom "P" []) (Atom "Q" []))
+  print (commutes model (Atom "P" []) (Atom "R" []))

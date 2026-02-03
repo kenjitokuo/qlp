@@ -3,6 +3,9 @@ module QLP.Backend.Hilbert where
 import Data.Complex (Complex((:+)))
 import qualified Data.Map.Strict as M
 import QLP.Syntax
+import System.IO (withFile, IOMode(ReadMode), hSetEncoding, utf8, hGetContents)
+import Control.Exception (evaluate)
+
 
 data HilbertModel = HilbertModel
   { dim :: Int
@@ -47,6 +50,13 @@ projXp = [[0.5:+0, 0.5:+0],
 projXm :: Mat
 projXm = [[0.5:+0, (-0.5):+0],
           [(-0.5):+0, 0.5:+0]]
+preset :: String -> Maybe Mat
+preset name = case name of
+  "Z0" -> Just projZ0
+  "Z1" -> Just projZ1
+  "X+" -> Just projXp
+  "X-" -> Just projXm
+  _    -> Nothing
 
 zeroMat :: Int -> Mat
 zeroMat n = replicate n (replicate n (0:+0))
@@ -93,3 +103,49 @@ commutes model a b =
       pb = atomProj model b
       comm = matSub (matMul pa pb) (matMul pb pa)
   in frobenius comm < epsComm model
+
+-- Very small config parser (no extra deps).
+-- Lines:
+--   dim N
+--   eps E
+--   pred P Z0|Z1|X+|X-
+
+loadModelFromFile :: FilePath -> IO HilbertModel
+loadModelFromFile fp = do
+  txt0 <- withFile fp ReadMode $ \h -> do
+    hSetEncoding h utf8
+    s <- hGetContents h
+    _ <- evaluate (length s)   -- ‚±‚±‚Å‘S•¶‚ð“Ç‚ÝØ‚é
+    pure s
+  let txt = dropBOM txt0
+      ls = filter (not . null) (map strip (lines txt))
+  pure (applyLines defaultModel ls)
+
+
+dropBOM :: String -> String
+dropBOM ('\xFEFF':xs) = xs
+dropBOM xs = xs
+
+
+applyLines :: HilbertModel -> [String] -> HilbertModel
+applyLines m [] = m
+applyLines m (l:ls) =
+  case words l of
+    ("dim":[nStr]) ->
+      applyLines (m { dim = read nStr }) ls
+    ("eps":[eStr]) ->
+      applyLines (m { epsComm = read eStr }) ls
+    ("pred":[p, tag]) ->
+      case preset tag of
+        Nothing -> applyLines m ls
+        Just mat -> applyLines (m { predProj = M.insert p mat (predProj m) }) ls
+    _ -> applyLines m ls
+
+strip :: String -> String
+strip = dropWhile isSpace . dropWhileEnd isSpace
+
+dropWhileEnd :: (a -> Bool) -> [a] -> [a]
+dropWhileEnd p = reverse . dropWhile p . reverse
+
+isSpace :: Char -> Bool
+isSpace c = c == ' ' || c == '\t' || c == '\r'
