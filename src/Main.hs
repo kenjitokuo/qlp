@@ -2,13 +2,18 @@ module Main where
 
 import QLP.Syntax
 import QLP.Unify
-import qualified Data.Map.Strict as M
 import QLP.Search
+import qualified Data.Map.Strict as M
 
 showSubst :: Subst -> String
 showSubst s =
   let pairs = [x ++ " -> " ++ show t | (x,t) <- M.toList s]
   in "{" ++ unwords pairs ++ "}"
+showSubstFor :: [Name] -> Subst -> String
+showSubstFor xs s =
+  let pairs = [x ++ " -> " ++ show (applyTerm s (TVar x)) | x <- xs]
+  in "{" ++ unwords pairs ++ "}"
+
 
 main :: IO ()
 main = do
@@ -48,5 +53,5 @@ main = do
 
   let q = [Atom "ancestor" [TFun "alice" [], TVar "Y"]]
   let sols = take 5 (solve prog q emptySubst 0)
-  mapM_ (putStrLn . showSubst) sols
+  mapM_ (putStrLn . showSubstFor ["Y"]) sols
 
