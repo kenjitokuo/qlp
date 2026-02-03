@@ -3,6 +3,7 @@ module Main where
 import QLP.Syntax
 import QLP.Unify
 import QLP.Search
+import QLP.Backend.Hilbert
 import qualified Data.Map.Strict as M
 
 showSubst :: Subst -> String
@@ -55,3 +56,14 @@ main = do
   let sols = take 5 (solve prog q emptySubst 0)
   mapM_ (putStrLn . showSubstFor ["Y"]) sols
 
+  putStrLn "Search smoke test (QLP stub, commutativity always true)"
+
+  -- Clause: ÊP(X) É Q(X)   (meaning: P(X) -> Q(X))
+  let c1 = Clause [Atom "P" [TVar "X"]] [Atom "Q" [TVar "X"]]
+  -- Fact: P(a)
+  let c2 = Clause [] [Atom "P" [TFun "a" []]]
+  let qprog = [c1, c2]
+
+  let g = Goal [Atom "Q" [TVar "Y"]] []
+  let qsols = take 3 (solveQLP defaultModel qprog g emptySubst 0)
+  mapM_ (putStrLn . showSubstFor ["Y"]) qsols
