@@ -1,4 +1,14 @@
-﻿module QLP.Unify where
+﻿module QLP.Unify
+  ( Subst
+  , emptySubst
+  , applyTerm
+  , applyAtom
+  , occurs
+  , compose
+  , unifyTerm
+  , unifyList
+  , unifyAtom
+  ) where
 
 import qualified Data.Map.Strict as M
 import QLP.Syntax
@@ -19,7 +29,6 @@ occurs :: Name -> Term -> Bool
 occurs x t = case t of
   TVar y     -> x == y
   TFun _ xs  -> any (occurs x) xs
-
 
 applyAtom :: Subst -> Atom -> Atom
 applyAtom s (Atom p xs) = Atom p (map (applyTerm s) xs)

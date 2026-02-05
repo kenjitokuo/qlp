@@ -1,4 +1,9 @@
-﻿module QLP.Syntax where
+﻿module QLP.Syntax
+  ( Name
+  , Term(..)
+  , Atom(..)
+  , Lit(..)
+  ) where
 
 -- A minimal first-order term language for unification and goals.
 
@@ -9,12 +14,8 @@ data Term
   | TFun Name [Term]
   deriving (Eq, Ord, Show, Read)
 
-
-
 data Atom = Atom Name [Term]
   deriving (Eq, Ord, Show, Read)
-
-
 
 data Lit
   = Pos Atom
