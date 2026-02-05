@@ -1,4 +1,4 @@
-module QLP.Syntax where
+﻿module QLP.Syntax where
 
 -- A minimal first-order term language for unification and goals.
 
@@ -7,10 +7,14 @@ type Name = String
 data Term
   = TVar Name
   | TFun Name [Term]
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Read)
+
+
 
 data Atom = Atom Name [Term]
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Read)
+
+
 
 data Lit
   = Pos Atom

@@ -1,4 +1,4 @@
-module QLP.Unify where
+﻿module QLP.Unify where
 
 import qualified Data.Map.Strict as M
 import QLP.Syntax

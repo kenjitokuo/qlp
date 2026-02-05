@@ -1,50 +1,59 @@
-module QLP.Search where
+ï»¿module QLP.Search where
 
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import QLP.Syntax
 import QLP.Unify
-import QLP.Backend.Hilbert
 
 -- A Horn-like rule: Head :- Body1, ..., Bodyk.
 data Rule = Rule
   { headAtom :: Atom
   , bodyAtoms :: [Atom]
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Read)
+
 
 type Program = [Rule]
+type Comm = Atom -> Atom -> Bool
 
 -- Depth-first search for QLP goals (stub commutativity).
 -- We keep a fresh counter for rename-apart like before.
-solveQLP :: HilbertModel -> QProgram -> Goal -> Subst -> Int -> [Subst]
+solveQLP :: Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
 solveQLP _ _ (Goal [] []) s _ = [s]
-solveQLP model prog (Goal (r:rs) ns) s k =
-  -- try to solve positive atom r using a clause where r matches some q_k
+solveQLP comm prog (Goal (r:rs) ns) s k =
   concatMap step prog
   where
     step c0 =
       let (c, k1) = renameClause k c0
       in case pickMatchPos r (posAtoms c) s of
-         Nothing -> []
-         Just (matched, s', restPos) ->
-           if not (commutes model r matched) then [] else
+           Nothing -> []
+           Just (_matched, s', restPos) ->
              let newPosGoals = map (applyAtom s') (negAtoms c) ++ map (applyAtom s') rs
                  newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
-             in solveQLP model prog (Goal newPosGoals newNegGoals) s' k1
+                 atomsToCheck = applyAtom s' r : (newPosGoals ++ newNegGoals)
+                 g' = Goal newPosGoals newNegGoals
+             in if not (commutesAllAtoms comm atomsToCheck) then [] else solveQLP comm prog g' s' k1
 
-solveQLP model prog (Goal [] (sAtom:ns)) s k =
-  -- try to solve negative goal ÊsAtom using a clause where sAtom matches some p_k (i.e., negAtoms)
+solveQLP comm prog (Goal [] (sAtom:ns)) s k =
   concatMap step prog
   where
     step c0 =
       let (c, k1) = renameClause k c0
       in case pickMatchPos sAtom (negAtoms c) s of
-         Nothing -> []
-         Just (matched, s', restNeg) ->
-           if not (commutes model sAtom matched) then [] else
-             let newPosGoals = map (applyAtom s') (posAtoms c)  -- add q's positively
+           Nothing -> []
+           Just (_matched, s', restNeg) ->
+             let newPosGoals = map (applyAtom s') (posAtoms c)
                  newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
-             in solveQLP model prog (Goal newPosGoals newNegGoals) s' k1
+                 atomsToCheck = applyAtom s' sAtom : (newPosGoals ++ newNegGoals)
+                 g' = Goal newPosGoals newNegGoals
+             in if not (commutesAllAtoms comm atomsToCheck) then [] else solveQLP comm prog g' s' k1
+
+pairs :: [a] -> [(a,a)]
+pairs [] = []
+pairs (x:xs) = [(x,y) | y <- xs] ++ pairs xs
+
+commutesAllAtoms :: Comm -> [Atom] -> Bool
+commutesAllAtoms comm atoms = all (\(a,b) -> comm a b) (pairs atoms)
+
 
 -- Unify an atom against one atom in a list; return (newSubst, remainingAtoms).
 pickMatchPos :: Atom -> [Atom] -> Subst -> Maybe (Atom, Subst, [Atom])
@@ -71,20 +80,18 @@ renameClause k c =
 
 -- QLP-style clause and goal (very small core)
 data Clause = Clause
-  { negAtoms :: [Atom]  -- p1,...,pm in (Êp1 É ... É Êpm É q1 É ... É qn)
+  { negAtoms :: [Atom]  -- p1,...,pm in (ï¿¢p1 âˆ¨ ... âˆ¨ ï¿¢pm âˆ¨ q1 âˆ¨ ... âˆ¨ qn)
   , posAtoms :: [Atom]  -- q1,...,qn
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Read)
+
 
 data Goal = Goal
-  { wantPos :: [Atom]   -- r1,...,rm  in (r1 È ... È rm È Ês1 È ... È Êsn)
+  { wantPos :: [Atom]   -- r1,...,rm  in (r1 âˆ§ ... âˆ§ rm âˆ§ ï¿¢s1 âˆ§ ... âˆ§ ï¿¢sn)
   , wantNeg :: [Atom]   -- s1,...,sn
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Read)
 
 type QProgram = [Clause]
 
--- Commutativity check stub (always true for now)
-commutesWithProgram :: HilbertModel -> QProgram -> Atom -> Atom -> Bool
-commutesWithProgram model _ a b = commutes model a b
 
 
 -- Collect variables
