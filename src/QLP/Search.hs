@@ -24,6 +24,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import QLP.Syntax
 import QLP.Unify
+import Debug.Trace (trace)
 
 data Rule = Rule
   { headAtom :: Atom
@@ -47,7 +48,10 @@ solveQLP comm prog (Goal (r:rs) ns) s k =
                  newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
                  atomsToCheck = applyAtom s' r : (newPosGoals ++ newNegGoals)
                  g' = Goal newPosGoals newNegGoals
-             in if not (commutesAllAtoms comm atomsToCheck) then [] else solveQLP comm prog g' s' k1
+             in case firstNonCommutingPair comm atomsToCheck of
+                  Nothing -> solveQLP comm prog g' s' k1
+                  Just (x,y) ->
+                    debugIf debugComm ("[comm-fail pos] k=" ++ show k1 ++ " selected=" ++ show r ++ " pair=" ++ show x ++ " / " ++ show y ++ " atoms=" ++ show atomsToCheck) []
 
 solveQLP comm prog (Goal [] (sAtom:ns)) s k =
   concatMap step prog
@@ -61,11 +65,28 @@ solveQLP comm prog (Goal [] (sAtom:ns)) s k =
                  newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
                  atomsToCheck = applyAtom s' sAtom : (newPosGoals ++ newNegGoals)
                  g' = Goal newPosGoals newNegGoals
-             in if not (commutesAllAtoms comm atomsToCheck) then [] else solveQLP comm prog g' s' k1
+             in case firstNonCommutingPair comm atomsToCheck of
+                  Nothing -> solveQLP comm prog g' s' k1
+                  Just (x,y) ->
+                    debugIf debugComm ("[comm-fail neg] k=" ++ show k1 ++ " selected=" ++ show sAtom ++ " pair=" ++ show x ++ " / " ++ show y ++ " atoms=" ++ show atomsToCheck) []
 
 pairs :: [a] -> [(a,a)]
 pairs [] = []
 pairs (x:xs) = [(x,y) | y <- xs] ++ pairs xs
+
+debugComm :: Bool
+debugComm = True
+
+debugIf :: Bool -> String -> a -> a
+debugIf True msg x = trace msg x
+debugIf False _ x = x
+
+firstNonCommutingPair :: Comm -> [Atom] -> Maybe (Atom, Atom)
+firstNonCommutingPair comm atoms = go (pairs atoms)
+  where
+    go [] = Nothing
+    go ((a,b):ps) = if comm a b then go ps else Just (a,b)
+
 
 commutesAllAtoms :: Comm -> [Atom] -> Bool
 commutesAllAtoms comm atoms = all (\(a,b) -> comm a b) (pairs atoms)

@@ -9,6 +9,9 @@ import qualified Data.Set as S
 import System.Environment (getArgs)
 import Data.Char (toLower)
 import Text.Read (readMaybe)
+import System.IO (withFile, IOMode(ReadMode), hSetEncoding, hGetContents)
+import Control.Exception (try, IOException, evaluate)
+import GHC.IO.Encoding (mkTextEncoding)
 
 showSubst :: Subst -> String
 showSubst s =
@@ -20,6 +23,7 @@ showSubstFor xs s =
   let items = [x ++ " -> " ++ show (applyTerm s (TVar x)) | x <- xs]
   in "{" ++ unwords items ++ "}"
 
+
 varsTerm0 :: Term -> S.Set Name
 varsTerm0 t = case t of
   TVar x -> S.singleton x
@@ -30,6 +34,27 @@ varsAtom0 (Atom _ xs) = S.unions (map varsTerm0 xs)
 
 goalVars :: Goal -> [Name]
 goalVars (Goal ps ns) = S.toList (S.unions (map varsAtom0 (ps ++ ns)))
+
+stripUtf8BOM :: String -> String
+stripUtf8BOM ('\xFEFF':cs) = cs
+stripUtf8BOM cs = cs
+
+readFileStrictEnc :: FilePath -> String -> IO (Either IOException String)
+readFileStrictEnc fp encName = try $ do
+  enc <- mkTextEncoding encName
+  withFile fp ReadMode $ \h -> do
+    hSetEncoding h enc
+    s <- hGetContents h
+    _ <- evaluate (length s)
+    pure (stripUtf8BOM s)
+
+readFileStrictUtf8OrCP932 :: FilePath -> IO (Either IOException String)
+readFileStrictUtf8OrCP932 fp = do
+  e1 <- readFileStrictEnc fp "UTF-8"
+  case e1 of
+    Right s -> pure (Right s)
+    Left _  -> readFileStrictEnc fp "CP932"
+
 
 runSmoke :: FilePath -> String -> IO ()
 runSmoke modelPath commMode0 = do
@@ -112,11 +137,32 @@ runSolve modelPath commMode0 qprogPath goalPath = do
           "always" -> \_ _ -> True
           _        -> commutes model
 
-  qprogText <- readFile qprogPath
-  goalText <- readFile goalPath
+  eqprog <- readFileStrictUtf8OrCP932 qprogPath
+  egoal  <- readFileStrictUtf8OrCP932 goalPath
+  case (eqprog, egoal) of
+    (Left _, _) -> putStrLn "Failed to read QProgram file."
+    (_, Left _) -> putStrLn "Failed to read Goal file."
+    (Right qprogText, Right goalText) -> do
+      let mqprog = readMaybe qprogText :: Maybe QProgram
+      let mgoal  = readMaybe goalText  :: Maybe Goal
+      case (mqprog, mgoal) of
+        (Nothing, _) -> putStrLn "Failed to parse QProgram file (expected a Haskell value of type QProgram)."
+        (_, Nothing) -> putStrLn "Failed to parse Goal file (expected a Haskell value of type Goal)."
+        (Just qprog, Just goal) -> do
+          let xs = goalVars goal
+          let sols = take 20 (solveQLP comm qprog goal emptySubst 0)
+          if null sols then putStrLn "(no solutions)" else mapM_ (putStrLn . showSubstFor xs) sols
+
+
+  qprogText0 <- readFile qprogPath
+  goalText0  <- readFile goalPath
+
+  let qprogText = stripUtf8BOM qprogText0
+  let goalText  = stripUtf8BOM goalText0
 
   let mqprog = readMaybe qprogText :: Maybe QProgram
   let mgoal  = readMaybe goalText  :: Maybe Goal
+
 
   case (mqprog, mgoal) of
     (Nothing, _) -> putStrLn "Failed to parse QProgram file (expected a Haskell value of type QProgram)."
