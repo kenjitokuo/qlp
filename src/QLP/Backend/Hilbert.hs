@@ -8,11 +8,13 @@
   ) where
 
 import qualified Data.Map.Strict as M
-import Data.Char (isSpace)
 import Data.List (dropWhileEnd, intercalate)
-import Control.Exception (try, IOException)
 import Text.Read (readMaybe)
 import QLP.Syntax (Atom(..), Term(..))
+import Data.Char (isSpace, chr)
+import System.IO (withFile, IOMode(ReadMode), hSetEncoding, hGetContents)
+import Control.Exception (try, IOException, evaluate)
+import GHC.IO.Encoding (mkTextEncoding)
 
 type Key   = String
 type Vec   = [Double]
@@ -27,36 +29,36 @@ data HilbertModel = HilbertModel
 data Comm = CommTrue | CommFalse | CommUnknown
   deriving (Eq, Show)
 
+
 modelKeys :: HilbertModel -> [Key]
 modelKeys = M.keys . hmSpace
 
 commutes :: HilbertModel -> Atom -> Atom -> Bool
 commutes m a b =
   case commutes3 m a b of
-    CommFalse -> False
-    _         -> True
+    CommTrue    -> True
+    CommFalse   -> False
+    CommUnknown -> True
 
 commutes3 :: HilbertModel -> Atom -> Atom -> Comm
 commutes3 m a b =
   case (lookupSpace m a, lookupSpace m b) of
-    (Just sa, Just sb) ->
-      if commutesSpace (hmEps m) (hmDim m) sa sb then CommTrue else CommFalse
-    _ -> CommUnknown
+    (Just sa, Just sb) -> if commutesSpace (hmEps m) (hmDim m) sa sb then CommTrue else CommFalse
+    _                  -> CommUnknown
+
+-- --------------------
+-- Key resolution and lookup
+-- --------------------
 
 lookupSpace :: HilbertModel -> Atom -> Maybe Space
-lookupSpace m a@(Atom p _) =
+lookupSpace m a@(Atom p ts) =
   let mp    = hmSpace m
-      kPred = normKey p
-      kWild = wildKey a
+      pKey  = normKey p
+      kWild = wildKeyFromPred pKey (length ts)
+      kPred = pKey
   in case atomKey a of
        Just kExact -> M.lookup kExact mp <|> M.lookup kWild mp <|> M.lookup kPred mp
        Nothing     -> M.lookup kWild  mp <|> M.lookup kPred mp
-
-wildKey :: Atom -> Key
-wildKey (Atom p ts) =
-  let p' = normKey p
-      n  = length ts
-  in if n == 0 then p' else p' ++ "(" ++ intercalate "," (replicate n "_") ++ ")"
 
 atomKey :: Atom -> Maybe Key
 atomKey (Atom p ts) =
@@ -65,6 +67,10 @@ atomKey (Atom p ts) =
       let p' = normKey p
       in Just (if null ts then p' else p' ++ "(" ++ intercalate "," (map termKey ts) ++ ")")
     else Nothing
+
+wildKeyFromPred :: Key -> Int -> Key
+wildKeyFromPred pKey n =
+  if n == 0 then pKey else pKey ++ "(" ++ intercalate "," (replicate n "_") ++ ")"
 
 isGroundTerm :: Term -> Bool
 isGroundTerm t =
@@ -79,15 +85,15 @@ termKey t =
     TFun f [] -> normKey f
     TFun f as -> normKey f ++ "(" ++ intercalate "," (map termKey as) ++ ")"
 
-
 -- --------------------
 -- Commutativity checks (inner products only)
 -- --------------------
 
 commutesSpace :: Double -> Int -> Space -> Space -> Bool
 commutesSpace eps d sa0 sb0 =
-  let sa = gramSchmidt (max 1e-12 (eps * 0.1)) d sa0
-      sb = gramSchmidt (max 1e-12 (eps * 0.1)) d sb0
+  let epsGS = max 1e-12 (eps * 0.1)
+      sa    = gramSchmidt epsGS d sa0
+      sb    = gramSchmidt epsGS d sb0
   in case (sa, sb) of
        ([va], [vb]) -> commutesKet eps d va vb
        _            -> commutesSubspace eps d sa sb
@@ -102,9 +108,9 @@ commutesKet eps d vp0 vq0 =
 
 -- General: test mutual invariance using projections onto orthonormal bases
 commutesSubspace :: Double -> Int -> Space -> Space -> Bool
-commutesSubspace eps d u v =
-  let okU = all (\x -> inSpan eps d u (projOn d v x)) u
-      okV = all (\x -> inSpan eps d v (projOn d u x)) v
+commutesSubspace eps d u0 v0 =
+  let okU = all (\x -> inSpan eps d u0 (projOn d v0 x)) u0
+      okV = all (\x -> inSpan eps d v0 (projOn d u0 x)) v0
   in okU && okV
 
 projOn :: Int -> Space -> Vec -> Vec
@@ -162,9 +168,25 @@ normalizeVec d v0 =
 -- Loading/parsing
 -- --------------------
 
+readFileStrictEnc :: FilePath -> String -> IO (Either IOException String)
+readFileStrictEnc fp encName = try $ do
+  enc <- mkTextEncoding encName
+  withFile fp ReadMode $ \h -> do
+    hSetEncoding h enc
+    s <- hGetContents h
+    _ <- evaluate (length s)
+    pure s
+
+readFileStrictUtf8OrCP932 :: FilePath -> IO (Either IOException String)
+readFileStrictUtf8OrCP932 fp = do
+  e1 <- readFileStrictEnc fp "UTF-8"
+  case e1 of
+    Right s -> pure (Right s)
+    Left _  -> readFileStrictEnc fp "CP932"
+
 loadModelOrDefault :: FilePath -> IO HilbertModel
 loadModelOrDefault fp = do
-  e <- try (readFile fp) :: IO (Either IOException String)
+  e <- readFileStrictUtf8OrCP932 fp
   case e of
     Left _    -> pure defaultModel
     Right txt ->
@@ -176,12 +198,13 @@ defaultModel :: HilbertModel
 defaultModel =
   let d   = 2
       eps = 1e-9
-      mp  = M.fromList
+      mp0 = M.fromList
               [ ("p", [ket0])
               , ("q", [ket0])
               , ("r", [ketPlus])
               ]
-  in HilbertModel d eps (M.map (map (normalizeVec d)) mp)
+      mp  = M.map (map (normalizeVec d)) mp0
+  in HilbertModel d eps mp
 
 parseModel :: String -> Maybe HilbertModel
 parseModel txt =
@@ -263,7 +286,7 @@ parseKV :: String -> Maybe (String, String)
 parseKV s =
   case splitOnce ':' s of
     Just (k,v) -> Just (normKey k, strip v)
-    Nothing ->
+    Nothing    ->
       case splitOnce '=' s of
         Just (k,v) -> Just (normKey k, strip v)
         Nothing    -> Nothing
