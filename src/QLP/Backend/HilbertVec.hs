@@ -1,4 +1,10 @@
-﻿module QLP.Backend.HilbertVec where
+﻿module QLP.Backend.HilbertVec
+  ( VecModel(..)
+  , defaultVecModel
+  , commutesVec
+  , loadVecModelOrDefault
+  , writeVecModelSample
+  ) where
 
 import qualified Data.Map.Strict as M
 import Data.Char (isSpace)
@@ -74,6 +80,8 @@ parseVecModel txt =
       let line = trim (stripComment ln)
       in if null line then go vm rest else
          case words line of
+           [] -> go vm rest
+
            ("dim":n:[]) ->
              case readMaybe n of
                Just d | d > 0 -> go (vm { vmDim = d }) rest

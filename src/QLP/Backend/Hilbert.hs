@@ -11,7 +11,7 @@ import qualified Data.Map.Strict as M
 import Data.List (dropWhileEnd, intercalate)
 import Text.Read (readMaybe)
 import QLP.Syntax (Atom(..), Term(..))
-import Data.Char (isSpace, chr)
+import Data.Char (isSpace)
 import System.IO (withFile, IOMode(ReadMode), hSetEncoding, hGetContents)
 import Control.Exception (try, IOException, evaluate)
 import GHC.IO.Encoding (mkTextEncoding)
