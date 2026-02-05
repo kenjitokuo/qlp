@@ -1,15 +1,14 @@
-module Main (main) where
+﻿module Main (main) where
 
 import QLP.Syntax
 import QLP.Unify
-import QLP.Search (Comm, Rule(..), Clause(..), Goal(..), QProgram, solve, solveQLP)
-import QLP.Backend.Hilbert hiding (Comm)
+import QLP.Search (Rule(..), Clause(..), Goal(..), QProgram, solve, solveQLP)
+import QLP.Backend.Hilbert
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import System.Environment (getArgs)
 import Data.Char (toLower)
 import Text.Read (readMaybe)
-
 
 showSubst :: Subst -> String
 showSubst s =
@@ -32,12 +31,11 @@ varsAtom0 (Atom _ xs) = S.unions (map varsTerm0 xs)
 goalVars :: Goal -> [Name]
 goalVars (Goal ps ns) = S.toList (S.unions (map varsAtom0 (ps ++ ns)))
 
-
 runSmoke :: FilePath -> String -> IO ()
 runSmoke modelPath commMode0 = do
   model <- loadModelOrDefault modelPath
   let commMode = map toLower commMode0
-  let comm :: Comm
+  let comm :: Atom -> Atom -> Bool
       comm =
         case commMode of
           "always" -> \_ _ -> True
@@ -108,7 +106,7 @@ runSolve :: FilePath -> String -> FilePath -> FilePath -> IO ()
 runSolve modelPath commMode0 qprogPath goalPath = do
   model <- loadModelOrDefault modelPath
   let commMode = map toLower commMode0
-  let comm :: Comm
+  let comm :: Atom -> Atom -> Bool
       comm =
         case commMode of
           "always" -> \_ _ -> True
@@ -144,7 +142,6 @@ runEmitSample qprogPath goalPath = do
   writeFile goalPath (show sampleGoal ++ "\n")
   putStrLn ("Wrote: " ++ qprogPath)
   putStrLn ("Wrote: " ++ goalPath)
-
 
 extractModelArg :: [String] -> (FilePath, [String])
 extractModelArg [] = ("hilbert.conf", [])

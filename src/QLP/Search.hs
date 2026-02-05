@@ -1,22 +1,38 @@
-﻿module QLP.Search where
+﻿module QLP.Search
+  ( Rule(..)
+  , Program
+  , Comm
+  , Clause(..)
+  , Goal(..)
+  , QProgram
+  , solve
+  , solveQLP
+  , pairs
+  , commutesAllAtoms
+  , pickMatchPos
+  , varsClause
+  , renameClause
+  , varsTerm
+  , varsAtom
+  , varsRule
+  , renameTerm
+  , renameAtom
+  , renameRule
+  ) where
 
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import QLP.Syntax
 import QLP.Unify
 
--- A Horn-like rule: Head :- Body1, ..., Bodyk.
 data Rule = Rule
   { headAtom :: Atom
   , bodyAtoms :: [Atom]
   } deriving (Eq, Show, Read)
 
-
 type Program = [Rule]
 type Comm = Atom -> Atom -> Bool
 
--- Depth-first search for QLP goals (stub commutativity).
--- We keep a fresh counter for rename-apart like before.
 solveQLP :: Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
 solveQLP _ _ (Goal [] []) s _ = [s]
 solveQLP comm prog (Goal (r:rs) ns) s k =
@@ -54,8 +70,6 @@ pairs (x:xs) = [(x,y) | y <- xs] ++ pairs xs
 commutesAllAtoms :: Comm -> [Atom] -> Bool
 commutesAllAtoms comm atoms = all (\(a,b) -> comm a b) (pairs atoms)
 
-
--- Unify an atom against one atom in a list; return (newSubst, remainingAtoms).
 pickMatchPos :: Atom -> [Atom] -> Subst -> Maybe (Atom, Subst, [Atom])
 pickMatchPos _ [] _ = Nothing
 pickMatchPos a (b:bs) s =
@@ -65,7 +79,6 @@ pickMatchPos a (b:bs) s =
       (b', s', rest) <- pickMatchPos a bs s
       Just (b', s', b:rest)
 
--- rename-apart for Clause using the existing renameTerm/renameAtom logic
 varsClause :: Clause -> S.Set Name
 varsClause (Clause ns ps) = S.unions (map varsAtom (ns ++ ps))
 
@@ -77,24 +90,18 @@ renameClause k c =
       k' = k + length vs
   in (c', k')
 
-
--- QLP-style clause and goal (very small core)
 data Clause = Clause
-  { negAtoms :: [Atom]  -- p1,...,pm in (￢p1 ∨ ... ∨ ￢pm ∨ q1 ∨ ... ∨ qn)
-  , posAtoms :: [Atom]  -- q1,...,qn
+  { negAtoms :: [Atom]
+  , posAtoms :: [Atom]
   } deriving (Eq, Show, Read)
 
-
 data Goal = Goal
-  { wantPos :: [Atom]   -- r1,...,rm  in (r1 ∧ ... ∧ rm ∧ ￢s1 ∧ ... ∧ ￢sn)
-  , wantNeg :: [Atom]   -- s1,...,sn
+  { wantPos :: [Atom]
+  , wantNeg :: [Atom]
   } deriving (Eq, Show, Read)
 
 type QProgram = [Clause]
 
-
-
--- Collect variables
 varsTerm :: Term -> S.Set Name
 varsTerm t = case t of
   TVar x -> S.singleton x
@@ -106,7 +113,6 @@ varsAtom (Atom _ xs) = S.unions (map varsTerm xs)
 varsRule :: Rule -> S.Set Name
 varsRule (Rule h bs) = S.unions (varsAtom h : map varsAtom bs)
 
--- Rename variables in a rule apart (fresh) using an integer counter
 renameTerm :: M.Map Name Name -> Term -> Term
 renameTerm m t = case t of
   TVar x -> TVar (M.findWithDefault x x m)
@@ -123,8 +129,6 @@ renameRule k r =
       k' = k + length vs
   in (r', k')
 
--- Depth-first search with backtracking, returning all solutions.
--- The Int parameter is a fresh-name counter for rename-apart.
 solve :: Program -> [Atom] -> Subst -> Int -> [Subst]
 solve _ [] s _ = [s]
 solve prog (g:gs) s k =
