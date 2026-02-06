@@ -1,4 +1,4 @@
-module Main (main) where
+﻿module Main (main) where
 
 import QLP.Syntax
 import QLP.Unify
@@ -183,12 +183,8 @@ runSolve modelPath commMode0 commFactsPath maxSol qprogPath goalPath = do
                 let sols = runSolveCore commFacts maxSol qprog goal
                 if null sols then putStrLn "(no solutions)" else mapM_ (putStrLn . showSubstFor xs) sols
         _ -> do
-          let (v, solsH, solsA) = classifyHilbert xs commHilbert commAlways maxSol qprog goal
-          case v of
-            Provable -> do { putStrLn "(provable)"; mapM_ (putStrLn . showSubstFor xs) solsH }
-            ProvableNonGround -> do { putStrLn "(provable-nonground)"; mapM_ (putStrLn . showSubstFor xs) solsH }
-            NotApplicable -> do { putStrLn "(not-applicable)"; if null solsA then pure () else mapM_ (putStrLn . showSubstFor xs) solsA }
-            NoSolutions -> putStrLn "(no solutions)"
+          let sols = runSolveCore commHilbert maxSol qprog goal
+          if null sols then putStrLn "(no solutions)" else mapM_ (putStrLn . showSubstFor xs) sols
 
 runCompare :: FilePath -> Int -> FilePath -> FilePath -> IO ()
 runCompare modelPath maxSol qprogPath goalPath = do
@@ -331,9 +327,6 @@ printUsage = do
   putStrLn "Notes:"
   putStrLn "  The first token may be a subcommand (solve/compare/...) or legacy flags (--solve/...)."
   putStrLn "  If argument parsing fails, this program prints args and exits with failure."
-
-fatal :: String -> IO a
-fatal msg = do { putStrLn msg; exitFailure }
 
 main :: IO ()
 main = do
