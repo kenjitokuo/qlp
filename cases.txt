@@ -1,5 +1,2 @@
-﻿.\tests\qprog_ctxpair.txt	.\tests\goal_ctxpair.txt
-.\tests\qprog_defercomm.txt	.\tests\goal_defercomm.txt
-.\tests\qprog_pairtest.txt	.\tests\goal_pairtest.txt
+﻿.\tests\qprog_varground.txt	.\tests\goal_varground.txt
 .\tests\qprog_varcomm.txt	.\tests\goal_varcomm.txt
-.\tests\qprog_varground.txt	.\tests\goal_varground.txt

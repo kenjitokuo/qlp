@@ -1,6 +1,6 @@
 ﻿.stack-work/
 dist-newstyle/
+out.jsonl
+*.exe
 *.hi
 *.o
-*.exe
-out.jsonl
