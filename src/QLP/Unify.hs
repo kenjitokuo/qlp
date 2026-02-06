@@ -1,4 +1,4 @@
-﻿module QLP.Unify
+module QLP.Unify
   ( Subst
   , emptySubst
   , applyTerm

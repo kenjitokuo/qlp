@@ -1,4 +1,4 @@
-﻿module QLP.Backend.Hilbert
+module QLP.Backend.Hilbert
   ( HilbertModel
   , Comm(..)
   , loadModelOrDefault

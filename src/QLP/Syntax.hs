@@ -1,4 +1,4 @@
-﻿module QLP.Syntax
+module QLP.Syntax
   ( Name
   , Term(..)
   , Atom(..)

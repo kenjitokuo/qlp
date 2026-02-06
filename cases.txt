@@ -1,2 +1,2 @@
-﻿.\tests\qprog_varground.txt	.\tests\goal_varground.txt
+.\tests\qprog_varground.txt	.\tests\goal_varground.txt
 .\tests\qprog_varcomm.txt	.\tests\goal_varcomm.txt

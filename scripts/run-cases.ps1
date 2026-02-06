@@ -1,4 +1,4 @@
-﻿param(
+param(
   [string[]] $Models = @(".\tests\confArgA.conf", ".\tests\confArgB.conf"),
   [int]      $MaxSol = 5,
   [string]   $Out    = ".\out.jsonl",

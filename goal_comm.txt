@@ -1,1 +1,1 @@
-﻿Goal {wantPos = [Atom "Q" [TVar "Y"], Atom "R" [TVar "Y"]], wantNeg = []}
+Goal {wantPos = [Atom "Q" [TVar "Y"], Atom "R" [TVar "Y"]], wantNeg = []}

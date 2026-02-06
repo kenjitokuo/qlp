@@ -1,4 +1,4 @@
-﻿module QLP.Backend.HilbertVec
+module QLP.Backend.HilbertVec
   ( VecModel(..)
   , defaultVecModel
   , commutesVec

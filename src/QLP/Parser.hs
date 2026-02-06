@@ -1,6 +1,7 @@
-﻿module QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText) where
+module QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText) where
 
-import QLP.Syntax (Term(..), Atom(..), Clause(..), Goal(..), QProgram)
+import QLP.Syntax (Term(..), Atom(..))
+import QLP.Search (Clause(..), Goal(..), QProgram)
 import Data.Char (isAlphaNum, isSpace, toLower, isUpper)
 import Text.ParserCombinators.ReadP
 import Control.Applicative ((<|>))

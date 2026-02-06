@@ -1,4 +1,4 @@
-﻿module QLP.Search
+module QLP.Search
   ( Rule(..)
   , Program
   , Comm

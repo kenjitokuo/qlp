@@ -1,4 +1,4 @@
-﻿module Main (main) where
+module Main (main) where
 
 import QLP.Syntax
 import QLP.Unify
@@ -287,6 +287,54 @@ extractMaxSolArg ["--max-sol"] = (20, ["--max-sol"])
 extractMaxSolArg ("--max-sol":n:xs) = case readMaybe n of { Just k -> (k, xs); Nothing -> (20, ("--max-sol":n:xs)) }
 extractMaxSolArg (x:xs) = let (k, ys) = extractMaxSolArg xs in (k, x:ys)
 
+data Cmd = CmdRun | CmdEmitSample FilePath FilePath | CmdSolve FilePath FilePath | CmdCompare FilePath FilePath | CmdCompareJsonl FilePath FilePath FilePath | CmdHelp deriving (Eq, Show)
+
+parseCmd :: [String] -> Either String Cmd
+parseCmd rest =
+  case rest of
+    [] -> Right CmdHelp
+    ["--help"] -> Right CmdHelp
+    ["-h"] -> Right CmdHelp
+    ["help"] -> Right CmdHelp
+    ["--run"] -> Right CmdRun
+    ["run"] -> Right CmdRun
+    ("--emit-sample":qprogPath:goalPath:[]) -> Right (CmdEmitSample qprogPath goalPath)
+    ("emit-sample":qprogPath:goalPath:[]) -> Right (CmdEmitSample qprogPath goalPath)
+    ("--solve":qprogPath:goalPath:[]) -> Right (CmdSolve qprogPath goalPath)
+    ("solve":qprogPath:goalPath:[]) -> Right (CmdSolve qprogPath goalPath)
+    ("--compare":qprogPath:goalPath:[]) -> Right (CmdCompare qprogPath goalPath)
+    ("compare":qprogPath:goalPath:[]) -> Right (CmdCompare qprogPath goalPath)
+    ("--compare-jsonl":outPath:qprogPath:goalPath:[]) -> Right (CmdCompareJsonl outPath qprogPath goalPath)
+    ("compare-jsonl":outPath:qprogPath:goalPath:[]) -> Right (CmdCompareJsonl outPath qprogPath goalPath)
+    _ -> Left ("Unknown/invalid arguments: " ++ show rest)
+
+printUsage :: IO ()
+printUsage = do
+  putStrLn "Usage:"
+  putStrLn "  qlp [options] solve <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] compare <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] compare-jsonl <outPath> <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] emit-sample <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] run"
+  putStrLn "  qlp help"
+  putStrLn "Legacy forms (still accepted):"
+  putStrLn "  qlp [options] --solve <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] --compare <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] --compare-jsonl <outPath> <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] --emit-sample <qprogPath> <goalPath>"
+  putStrLn "  qlp [options] --run"
+  putStrLn "Options:"
+  putStrLn "  --model <path>               (default: hilbert.conf)"
+  putStrLn "  --comm <hilbert|always|facts> (default: hilbert)"
+  putStrLn "  --comm-facts <path>          (required when --comm facts)"
+  putStrLn "  --max-sol <n>                (default: 20)"
+  putStrLn "Notes:"
+  putStrLn "  The first token may be a subcommand (solve/compare/...) or legacy flags (--solve/...)."
+  putStrLn "  If argument parsing fails, this program prints args and exits with failure."
+
+fatal :: String -> IO a
+fatal msg = do { putStrLn msg; exitFailure }
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -294,21 +342,12 @@ main = do
   let (commMode, args2)  = extractCommArg args1
   let (commFacts, args3) = extractCommFactsArg args2
   let (maxSol, rest)     = extractMaxSolArg args3
-  case rest of
-    ["--run"] -> runSmoke modelPath commMode
-    ("--emit-sample":qprogPath:goalPath:[]) -> runEmitSample qprogPath goalPath
-    ("--solve":qprogPath:goalPath:[]) -> runSolve modelPath commMode commFacts maxSol qprogPath goalPath
-    ("--compare":qprogPath:goalPath:[]) -> runCompare modelPath maxSol qprogPath goalPath
-    ("--compare-jsonl":outPath:qprogPath:goalPath:[]) -> runCompareJsonl modelPath maxSol outPath qprogPath goalPath
-    _ -> do
-      putStrLn "Unknown/invalid arguments."
-      putStrLn ("args = " ++ show args)
-      putStrLn "Expected one of:"
-      putStrLn "  --run"
-      putStrLn "  --emit-sample <qprogPath> <goalPath>"
-      putStrLn "  --solve <qprogPath> <goalPath>"
-      putStrLn "  --compare <qprogPath> <goalPath>"
-      putStrLn "  --compare-jsonl <outPath> <qprogPath> <goalPath>"
-      putStrLn "Options:"
-      putStrLn "  --model <path> --comm <hilbert|always|facts> --comm-facts <path> --max-sol <n>"
-      exitFailure
+  cmdE <- pure (parseCmd rest)
+  case cmdE of
+    Left err -> do { putStrLn err; putStrLn ("args = " ++ show args); printUsage; exitFailure }
+    Right CmdHelp -> do { printUsage; putStrLn ("args = " ++ show args) }
+    Right CmdRun -> runSmoke modelPath commMode
+    Right (CmdEmitSample qprogPath goalPath) -> runEmitSample qprogPath goalPath
+    Right (CmdSolve qprogPath goalPath) -> runSolve modelPath commMode commFacts maxSol qprogPath goalPath
+    Right (CmdCompare qprogPath goalPath) -> runCompare modelPath maxSol qprogPath goalPath
+    Right (CmdCompareJsonl outPath qprogPath goalPath) -> runCompareJsonl modelPath maxSol outPath qprogPath goalPath

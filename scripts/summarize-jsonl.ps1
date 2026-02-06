@@ -1,4 +1,4 @@
-﻿param(
+param(
   [string] $Out = ".\out.jsonl"
 )
 
