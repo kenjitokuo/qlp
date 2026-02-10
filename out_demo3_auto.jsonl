@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_pauli_2q_3group.conf","qprog":".\\tests\\demo\\qprog_C_auto8_3grp_auto_groups.txt","goal":".\\tests\\demo\\goal_C_auto8_3grp_auto_groups.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}
