@@ -1,0 +1,3 @@
+# minimal commutativity facts
+commute(Q(a), R(a)).
+commute(Q(a), Q(a)).

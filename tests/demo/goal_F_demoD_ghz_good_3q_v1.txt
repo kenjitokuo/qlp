@@ -1,0 +1,1 @@
+Goal {wantPos = [Atom "GHZ_OK" [TFun "a" []]], wantNeg = []}

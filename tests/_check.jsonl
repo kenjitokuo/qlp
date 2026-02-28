@@ -1,0 +1,1 @@
+{"model":"hilbert.conf","qprog":".\\tests\\ex63_qprog.txt","goal":".\\tests\\ex63_goal.txt","max_sol":20,"vars":["X"],"verdict":"provable","sols_hilbert":["{X -> TFun \"a\" []}"],"sols_always":["{X -> TFun \"a\" []}"],"comm_fail_pair":null}

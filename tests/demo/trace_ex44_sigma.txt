@@ -1,0 +1,3 @@
+[comm-fail pos] k=1 pair=Atom "Q" [TFun "a" []] / Atom "R" [TFun "a" []] ctx=[Atom "R" [TFun "a" []]]
+(not-applicable)
+{}
