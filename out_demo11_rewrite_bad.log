@@ -1,0 +1,5 @@
+Mode   : ZFirst
+Input  : XII ZZI IZZ
+Target : IZZ ZZI XII
+Result : XII ZZI IZZ
+FAILED (blocked by noncommuting adjacent pair): XII / ZZI

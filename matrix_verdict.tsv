@@ -1,0 +1,7 @@
+﻿case	.\tests\confArgA.conf	.\tests\confArgB.conf	.\tests\demo_models\conf_demo_all_commute.conf	.\tests\demo_models\conf_demo_mixed.conf	.\tests\demo_models\conf_demo_orth_commute.conf	.\tests\demo_models\conf_demo_qr_noncomm.conf	.\tests\demo_models\conf_demo_qs_noncomm.conf	.\tests\demo_models\conf_demo_rs_noncomm.conf
+qprog_A1_QR.txt	not-applicable	provable	provable	not-applicable	provable	not-applicable	provable	provable
+qprog_A2_QRS.txt	not-applicable	provable	provable	not-applicable	provable	not-applicable	not-applicable	not-applicable
+qprog_A3_QRT.txt	not-applicable	provable	provable	not-applicable	provable	not-applicable	provable	provable
+qprog_C1_var_QR.txt	not-applicable	provable	provable	not-applicable	provable	not-applicable	provable	provable
+qprog_C2_var_QS.txt	provable	provable	provable	not-applicable	provable	provable	not-applicable	not-applicable
+qprog_C3_var_QRS.txt	not-applicable	provable	provable	not-applicable	provable	not-applicable	not-applicable	not-applicable

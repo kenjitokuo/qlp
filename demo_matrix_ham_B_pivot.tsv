@@ -1,0 +1,5 @@
+case	conf_demo_ham_2q
+A1_QR	provable
+B_ST_pair	provable
+B_QS_pair_bad	not-applicable(Q||S)
+B_RT_pair_bad	not-applicable(R||T)

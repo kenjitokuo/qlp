@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_ex43_plain_1q.conf","qprog":".\\tests\\demo\\qprog_ex43_plain.txt","goal":".\\tests\\demo\\goal_ex43_pa.txt","max_sol":1,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

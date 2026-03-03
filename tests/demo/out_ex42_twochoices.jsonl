@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_ex42_twochoices_1q.conf","qprog":".\\tests\\demo\\qprog_ex42_twochoices.txt","goal":".\\tests\\demo\\goal_ex42_twochoices.txt","max_sol":2,"vars":["X"],"verdict":"provable","sols_hilbert":["{X -> TFun \"b\" []}"],"sols_always":["{X -> TFun \"a\" []}","{X -> TFun \"b\" []}"],"comm_fail_pair":null}

@@ -1,0 +1,4 @@
+case	confArgA	confArgB	conf_demo_all_commute	conf_demo_only_qr_noncomm	conf_demo_mixed	conf_demo_only_qs_noncomm	conf_demo_only_rs_noncomm
+A1_QR	not-applicable(Q||R)	provable	provable	not-applicable(Q||R)	not-applicable(Q||R)		
+C2_var_QS		provable	provable		not-applicable(Q||S)	not-applicable(Q||S)	
+A4_RS		provable	provable				not-applicable(R||S)

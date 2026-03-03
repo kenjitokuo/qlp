@@ -1,0 +1,16 @@
+atom	pauli	coeff	note
+XXI	XXI	1.0	H term example
+YYI	YYI	1.0	H term example
+ZZI	ZZI	1.0	H term example
+IXX	IXX	1.0	H term example
+IYY	IYY	1.0	H term example
+IZZ	IZZ	1.0	H term example
+XIX	XIX	1.0	H term example
+YIY	YIY	1.0	H term example
+ZIZ	ZIZ	1.0	H term example
+XII	XII	1.0	H term example
+IXI	IXI	1.0	H term example
+IIX	IIX	1.0	H term example
+ZII	ZII	1.0	H term example
+IZI	IZI	1.0	H term example
+IIZ	IIZ	1.0	H term example

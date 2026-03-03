@@ -1,4 +1,4 @@
-module QLP.Search
+﻿module QLP.Search
   ( Rule(..)
   , Program
   , Comm
@@ -33,11 +33,12 @@ type Program = [Rule]
 type Comm = Atom -> Atom -> Bool
 
 solveQLP :: Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
-solveQLP = solveQLPWithDebug False
+solveQLP = solveQLPWithDebug True
 
 solveQLPWithDebug :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
 solveQLPWithDebug dbg comm prog goal s k = solveQLP' dbg comm prog goal s k []
 
+-- pending stores commutativity obligations (a,b) that must commute once they become ground.
 solveQLP' :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> [(Atom, Atom)] -> [Subst]
 solveQLP' dbg comm _ (Goal [] []) s _ pending =
   case normalizePending comm s pending of
@@ -50,6 +51,7 @@ solveQLP' dbg comm _ (Goal [] []) s _ pending =
             then debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') []
             else debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') [s]
 
+-- Positive selection: Goal (r:rs) ns.  We impose C(Γ,r) against the *current* context Γ (not the newly generated subgoals).
 solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
   concatMap step prog
   where
@@ -58,16 +60,20 @@ solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
       in case pickMatchPos r (posAtoms c) s of
            Nothing -> []
            Just (_matched, s', restPos) ->
-             let newPosGoals = map (applyAtom s') (negAtoms c) ++ map (applyAtom s') rs
-                 newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
-                 g'          = Goal newPosGoals newNegGoals
-                 sel         = applyAtom s' r
-                 ctx         = newPosGoals ++ newNegGoals
-                 pending0    = addPendingPairs sel ctx pending
+             let -- C(Γ,r): Γ is the current context (the other goals), not the premises introduced by c.
+                 sel     = applyAtom s' r
+                 ctxPre  = map (applyAtom s') (rs ++ ns)
+                 pending0 = addPendingPairs sel ctxPre pending
              in case normalizePending comm s' pending0 of
-                  Left (aBad, bBad) -> debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctx) []
-                  Right pending'    -> solveQLP' dbg comm prog g' s' k1 pending'
+                  Left (aBad, bBad) ->
+                    debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctxPre) []
+                  Right pending' ->
+                    let newPosGoals = map (applyAtom s') (negAtoms c) ++ map (applyAtom s') rs
+                        newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
+                        g'          = Goal newPosGoals newNegGoals
+                    in solveQLP' dbg comm prog g' s' k1 pending'
 
+-- Negative selection: Goal [] (sAtom:ns).  We impose C(Γ,sAtom) against the *current* context Γ = ns.
 solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending =
   concatMap step prog
   where
@@ -76,15 +82,17 @@ solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending =
       in case pickMatchPos sAtom (negAtoms c) s of
            Nothing -> []
            Just (_matched, s', restNeg) ->
-             let newPosGoals = map (applyAtom s') (posAtoms c)
-                 newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
-                 g'          = Goal newPosGoals newNegGoals
-                 sel         = applyAtom s' sAtom
-                 ctx         = newPosGoals ++ newNegGoals
-                 pending0    = addPendingPairs sel ctx pending
+             let sel      = applyAtom s' sAtom
+                 ctxPre   = map (applyAtom s') ns
+                 pending0 = addPendingPairs sel ctxPre pending
              in case normalizePending comm s' pending0 of
-                  Left (aBad, bBad) -> debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctx) []
-                  Right pending'    -> solveQLP' dbg comm prog g' s' k1 pending'
+                  Left (aBad, bBad) ->
+                    debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctxPre) []
+                  Right pending' ->
+                    let newPosGoals = map (applyAtom s') (posAtoms c)
+                        newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
+                        g'          = Goal newPosGoals newNegGoals
+                    in solveQLP' dbg comm prog g' s' k1 pending'
 
 isGroundTerm :: Term -> Bool
 isGroundTerm t = case t of { TVar _ -> False; TFun _ xs -> all isGroundTerm xs }
@@ -96,7 +104,7 @@ dedupe :: Eq a => [a] -> [a]
 dedupe = go [] where go acc [] = reverse acc; go acc (x:xs) = if x `elem` acc then go acc xs else go (x:acc) xs
 
 addPendingPairs :: Atom -> [Atom] -> [(Atom, Atom)] -> [(Atom, Atom)]
-addPendingPairs sel ctx pending = dedupe ([(sel, s) | s <- ctx] ++ pending)
+addPendingPairs sel ctx pending = dedupe ([(sel, a) | a <- ctx] ++ pending)
 
 normalizePending :: Comm -> Subst -> [(Atom, Atom)] -> Either (Atom, Atom) [(Atom, Atom)]
 normalizePending comm s pending = go [] pending
@@ -117,7 +125,7 @@ commutesAllAtoms :: Comm -> [Atom] -> Bool
 commutesAllAtoms comm atoms = all (\(a,b) -> comm a b) (pairs atoms)
 
 pendingMustBeGroundAtEnd :: Bool
-pendingMustBeGroundAtEnd = False
+pendingMustBeGroundAtEnd = True
 
 debugIf :: Bool -> String -> a -> a
 debugIf True msg x = trace msg x

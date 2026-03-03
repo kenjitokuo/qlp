@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_demo3_bad_one_group.txt","goal":".\\tests\\demo\\goal_demo3_bad_one_group.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

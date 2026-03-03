@@ -1,19 +1,37 @@
-module QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText) where
+﻿module QLP.Parser (
+  parseQProgramText,
+  parseGoalText,
+  parseCommFactsText,
+  parseAtomText
+) where
 
 import QLP.Syntax (Term(..), Atom(..))
 import QLP.Search (Clause(..), Goal(..), QProgram)
 import Data.Char (isAlphaNum, isSpace, toLower, isUpper)
 import Text.ParserCombinators.ReadP
 import Control.Applicative ((<|>))
+import Text.Read (readMaybe)
 
 parseQProgramText :: String -> Either String QProgram
-parseQProgramText s = parseAll qprogP s "QProgram"
+parseQProgramText s = parseAllOrRead qprogP s "QProgram"
 
 parseGoalText :: String -> Either String Goal
-parseGoalText s = parseAll goalP s "Goal"
+parseGoalText s = parseAllOrRead goalP s "Goal"
 
 parseCommFactsText :: String -> Either String [(Atom, Atom)]
-parseCommFactsText s = parseAll factsP s "CommFacts"
+parseCommFactsText s = parseAllOrRead factsP s "CommFacts"
+
+-- Atom text parser (useful for comm-check CLI etc.)
+parseAtomText :: String -> Either String Atom
+parseAtomText s = parseAll atomP s "Atom"
+
+parseAllOrRead :: Read a => ReadP a -> String -> String -> Either String a
+parseAllOrRead p s what =
+  case parseAll p s what of
+    Right x -> Right x
+    Left _  -> case readMaybe s of
+                 Just x  -> Right x
+                 Nothing -> Left ("Parse error: " ++ what)
 
 parseAll :: ReadP a -> String -> String -> Either String a
 parseAll p s what =
@@ -104,10 +122,10 @@ goalP = do
   let poss = [a | Right a <- ls]
   pure (Goal poss negs)
 
--- commutativity facts: commute(Atom, Atom).
+-- commutativity facts: comm(Atom, Atom).
 factP :: ReadP (Atom, Atom)
 factP = do
-  _ <- kw "commute"
+  _ <- kw "comm"
   _ <- symbol "("
   a <- atomP
   _ <- symbol ","

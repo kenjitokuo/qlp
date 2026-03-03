@@ -1,27 +1,42 @@
 param(
-  [string[]] $Models = @(".\tests\confArgA.conf", ".\tests\confArgB.conf"),
-  [int]      $MaxSol = 5,
-  [string]   $Out    = ".\out.jsonl",
-  [string]   $Cases  = ".\cases.txt"
+  [Parameter(Mandatory = $true)]
+  [string[]]$Models,
+
+  [int]$MaxSol = 20,
+
+  [Parameter(Mandatory = $true)]
+  [string]$Out,
+
+  [Parameter(Mandatory = $true)]
+  [string]$Cases
 )
 
-if (-not (Test-Path $Cases)) { throw "Cases file not found: $Cases" }
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-Remove-Item $Out -ErrorAction SilentlyContinue
+# 既存 out は消して、毎回クリーンに作る
+if (Test-Path -LiteralPath $Out) {
+  Remove-Item -LiteralPath $Out -Force
+}
 
-foreach ($Model in $Models) {
-  Get-Content $Cases | ForEach-Object {
-    $line = $_.Trim()
-    if ($line.Length -eq 0) { return }
-    if ($line.StartsWith("#")) { return }
+$caseLines = Get-Content -LiteralPath $Cases | Where-Object {
+  ($_ -ne $null) -and ($_.Trim().Length -gt 0) -and (-not ($_.Trim() -match '^\s*#'))
+}
 
-    $parts = $line -split "`t", 2
-    if ($parts.Count -lt 2) { Write-Host "skip (bad line): $line"; return }
+foreach ($model in $Models) {
+  foreach ($line in $caseLines) {
+    $parts = $line -split "`t"
+    if ($parts.Count -lt 2) {
+      throw "Bad case line (expected: <qprog><TAB><goal>): $line"
+    }
 
     $qprog = $parts[0].Trim()
     $goal  = $parts[1].Trim()
 
-    stack exec qlp -- --model $Model --max-sol $MaxSol --compare-jsonl $Out $qprog $goal
+    & stack exec qlp -- --model $model --max-sol $MaxSol --compare-jsonl $Out $qprog $goal
+    if ($LASTEXITCODE -ne 0) {
+      throw "qlp failed (exit=$LASTEXITCODE) model=$model qprog=$qprog goal=$goal"
+    }
   }
 }
 

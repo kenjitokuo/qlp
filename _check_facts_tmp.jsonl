@@ -1,0 +1,1 @@
+{"model":"hilbert.conf","qprog":".\\tests\\demo\\qprog_ex43_commfail.txt","goal":".\\tests\\demo\\goal_ex43_pb.txt","max_sol":1,"vars":[],"verdict":"no-solutions","sols_hilbert":[],"sols_always":[],"comm_fail_pair":null}

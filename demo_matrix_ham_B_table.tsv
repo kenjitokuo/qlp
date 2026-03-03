@@ -1,0 +1,5 @@
+case	model	verdict	comm_fail_pair
+A1_QR	conf_demo_ham_2q	provable	
+B_ST_pair	conf_demo_ham_2q	provable	
+B_QS_pair_bad	conf_demo_ham_2q	not-applicable(Q||S)	Q||S
+B_RT_pair_bad	conf_demo_ham_2q	not-applicable(R||T)	R||T

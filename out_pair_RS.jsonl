@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_ham_3color_2q.conf","qprog":".\\tests\\demo\\qprog_pair_RS.txt","goal":".\\tests\\demo\\goal_pair_RS.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":["Atom \"R\" [TFun \"a\" []]","Atom \"S\" [TFun \"a\" []]"]}

@@ -1,0 +1,1 @@
+{"model":"hilbert.conf","qprog":".\\tests\\demo\\qprog_F_demoD_ghz_bad_3q_v1.txt","goal":".\\tests\\demo\\goal_F_demoD_ghz_bad_3q_v1.txt","max_sol":1,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_stab_2q.conf","qprog":".\\tests\\demo\\qprog_E_demo5_pair_QR_comm.txt","goal":".\\tests\\demo\\goal_E_demo5_pair_QR_comm.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

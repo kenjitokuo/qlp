@@ -1,0 +1,3 @@
+[comm-fail pos] k=0 pair=Atom "Q" [TFun "a" []] / Atom "R" [TFun "a" []] ctx=[Atom "R" [TFun "a" []]]
+(provable)
+{X -> TFun "b" []}

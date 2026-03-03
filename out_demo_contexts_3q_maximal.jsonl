@@ -1,0 +1,2 @@
+{"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli","size":4,"clique":["IIX","IZI","XII","XIX"],"n_atoms":15,"kind":"clique_maximal"}
+

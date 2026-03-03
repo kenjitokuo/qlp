@@ -1,0 +1,24 @@
+N=3, gens=ZZI,IZZ
+|StabGroup| (phase ignored) = 4
+|Centralizer|               = 16
+Logical candidates (cent \\ stab, excl I) = 12
+
+Stabilizer group elements:
+  III
+  IZZ
+  ZIZ
+  ZZI
+
+Top logical candidates by weight (Top=40):
+  w=1  IIZ
+  w=1  IZI
+  w=1  ZII
+  w=3  XXX
+  w=3  XXY
+  w=3  XYX
+  w=3  XYY
+  w=3  YXX
+  w=3  YXY
+  w=3  YYX
+  w=3  YYY
+  w=3  ZZZ

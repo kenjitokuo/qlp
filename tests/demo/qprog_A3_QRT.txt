@@ -1,0 +1,5 @@
+[
+  Clause {negAtoms = [], posAtoms = [Atom "Q" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "R" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "T" [TFun "a" []]]}
+]

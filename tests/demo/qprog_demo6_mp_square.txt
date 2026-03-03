@@ -1,0 +1,19 @@
+[
+  Clause {negAtoms = [], posAtoms = [Atom "XI" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "IX" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "XX" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "IY" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "YI" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "YY" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "XY" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "YX" [TFun "a" []]]},
+  Clause {negAtoms = [], posAtoms = [Atom "ZZ" [TFun "a" []]]},
+
+  Clause {negAtoms = [Atom "XI" [TFun "a" []], Atom "IX" [TFun "a" []], Atom "XX" [TFun "a" []]], posAtoms = [Atom "R1" [TFun "a" []]]},
+  Clause {negAtoms = [Atom "IY" [TFun "a" []], Atom "YI" [TFun "a" []], Atom "YY" [TFun "a" []]], posAtoms = [Atom "R2" [TFun "a" []]]},
+  Clause {negAtoms = [Atom "XY" [TFun "a" []], Atom "YX" [TFun "a" []], Atom "ZZ" [TFun "a" []]], posAtoms = [Atom "R3" [TFun "a" []]]},
+
+  Clause {negAtoms = [Atom "XI" [TFun "a" []], Atom "IY" [TFun "a" []], Atom "XY" [TFun "a" []]], posAtoms = [Atom "C1" [TFun "a" []]]},
+  Clause {negAtoms = [Atom "IX" [TFun "a" []], Atom "YI" [TFun "a" []], Atom "YX" [TFun "a" []]], posAtoms = [Atom "C2" [TFun "a" []]]},
+  Clause {negAtoms = [Atom "XX" [TFun "a" []], Atom "YY" [TFun "a" []], Atom "ZZ" [TFun "a" []]], posAtoms = [Atom "C3" [TFun "a" []]]}
+]

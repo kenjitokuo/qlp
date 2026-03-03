@@ -1,0 +1,2 @@
+Goal {wantPos = [Atom "R1" [TFun "a" []], Atom "R2" [TFun "a" []], Atom "R3" [TFun "a" []], Atom "C1" [TFun "a" []], Atom "C2" [TFun "a" []], Atom "C3" [TFun "a" []]], wantNeg = []}
+

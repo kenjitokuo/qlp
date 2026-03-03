@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_mp_2q.conf","qprog":".\\tests\\demo\\qprog_demo6_mp_square.txt","goal":".\\tests\\demo\\goal_demo6_mp_square.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

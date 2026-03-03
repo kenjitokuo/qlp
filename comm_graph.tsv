@@ -1,0 +1,6 @@
+model	na_rows	unique_noncomm_pairs	pairs
+confArgA	1	1	Q||R
+conf_demo_mixed	2	2	Q||R; Q||S
+conf_demo_only_qr_noncomm	1	1	Q||R
+conf_demo_only_qs_noncomm	1	1	Q||S
+conf_demo_only_rs_noncomm	1	1	R||S

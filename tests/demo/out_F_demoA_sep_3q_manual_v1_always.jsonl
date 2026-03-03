@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_pauli_3q.conf","qprog":".\\tests\\demo\\qprog_F_demoA_sep_3q_manual_v1.txt","goal":".\\tests\\demo\\goal_F_demoA_sep_3q_manual_v1.txt","max_sol":1,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

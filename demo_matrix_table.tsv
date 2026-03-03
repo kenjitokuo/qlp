@@ -1,0 +1,13 @@
+case	model	verdict	comm_fail_pair
+A1_QR	confArgA	not-applicable(Q||R)	Q||R
+A1_QR	confArgB	provable	
+A1_QR	conf_demo_all_commute	provable	
+A1_QR	conf_demo_only_qr_noncomm	not-applicable(Q||R)	Q||R
+A1_QR	conf_demo_mixed	not-applicable(Q||R)	Q||R
+C2_var_QS	confArgB	provable	
+C2_var_QS	conf_demo_all_commute	provable	
+C2_var_QS	conf_demo_only_qs_noncomm	not-applicable(Q||S)	Q||S
+C2_var_QS	conf_demo_mixed	not-applicable(Q||S)	Q||S
+A4_RS	confArgB	provable	
+A4_RS	conf_demo_all_commute	provable	
+A4_RS	conf_demo_only_rs_noncomm	not-applicable(R||S)	R||S

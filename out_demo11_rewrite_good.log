@@ -1,0 +1,5 @@
+Mode   : ZFirst
+Input  : ZZI IZZ ZIZ XXX
+Target : IZZ ZIZ ZZI XXX
+Result : IZZ ZIZ ZZI XXX
+OK (rewritten to target)

@@ -1,0 +1,3 @@
+{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_A1_QR.txt","goal":".\\tests\\demo\\goal_A1_QR.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}
+{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_C2_var_QS.txt","goal":".\\tests\\demo\\goal_C2_var_QS.txt","max_sol":20,"vars":["X"],"verdict":"provable","sols_hilbert":["{X -> TFun \"a\" []}"],"sols_always":["{X -> TFun \"a\" []}"],"comm_fail_pair":null}
+{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_A4_RS.txt","goal":".\\tests\\demo\\goal_A4_RS.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

@@ -1,0 +1,204 @@
+
+===== CASE A1_QR =====
+
+== MODEL .\tests\confArgA.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{}
+
+===== CASE A2_QRS =====
+
+== MODEL .\tests\confArgA.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{}
+
+===== CASE A3_QRT =====
+
+== MODEL .\tests\confArgA.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(not-applicable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{}
+
+===== CASE C1_var_QR =====
+
+== MODEL .\tests\confArgA.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+===== CASE C2_var_QS =====
+
+== MODEL .\tests\confArgA.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+===== CASE C3_var_QRS =====
+
+== MODEL .\tests\confArgA.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\confArgB.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_all_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qr_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_qs_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_rs_noncomm.conf ==
+(not-applicable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_orth_commute.conf ==
+(provable)
+{X -> TFun "a" []}
+
+== MODEL .\tests\demo_models\conf_demo_mixed.conf ==
+(not-applicable)
+{X -> TFun "a" []}

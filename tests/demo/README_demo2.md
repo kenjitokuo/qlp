@@ -34,7 +34,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-demo2.ps1 -Model .\t
 ## Final verdict (last JSONL line)
 
 ```json
-{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_B_auto4_auto_groups.txt","goal":".\\tests\\demo\\goal_B_auto4_auto_groups.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}
+{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_B_auto4_auto_groups.txt","goal":".\\tests\\demo\\goal_B_auto4_auto_groups.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null,"case":"B_auto4","model_tag":"conf_demo_ham_2q","comm_mode":"pauli","n_atoms":4,"atoms":["Q","R","S","T"],"noncomm_edge_count":4,"noncomm_edges":["Q|S","Q|T","R|S","R|T"],"k_opt":2,"group_sizes":[2,2],"k_greedy":2,"greedy_group_sizes":[2,2]}
 ```
 
 ## Goal (for reference)

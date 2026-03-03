@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_ex41_subst_1q.conf","qprog":".\\tests\\demo\\qprog_ex41_pf.txt","goal":".\\tests\\demo\\goal_ex41_pf.txt","max_sol":1,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":["Q","R"]}

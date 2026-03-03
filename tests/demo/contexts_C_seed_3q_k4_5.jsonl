@@ -1,0 +1,5 @@
+{"clique":["IIX","IXI","IXX","XII"],"kind":"clique_k","size":4,"n_atoms":15,"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli"}
+{"clique":["IIX","IXI","IXX","XIX"],"kind":"clique_k","size":4,"n_atoms":15,"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli"}
+{"clique":["IIX","IXI","IXX","XXI"],"kind":"clique_k","size":4,"n_atoms":15,"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli"}
+{"clique":["IIX","IXI","IXX","ZII"],"kind":"clique_k","size":4,"n_atoms":15,"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli"}
+{"clique":["IIX","IXI","XII","XIX"],"kind":"clique_k","size":4,"n_atoms":15,"model":".\\tests\\conf_demo_pauli_3q.conf","noncomm_edge_count":45,"comm_mode":"pauli"}

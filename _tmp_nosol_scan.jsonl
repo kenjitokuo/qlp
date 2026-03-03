@@ -1,0 +1,1 @@
+{"model":"hilbert.conf","qprog":"C:\\Users\\yue\\qlp\\tests\\sample_qprog.txt","goal":"C:\\Users\\yue\\qlp\\tests\\sample_goal.txt","max_sol":1,"vars":["Y"],"verdict":"provable","sols_hilbert":["{Y -> TFun \"a\" []}"],"sols_always":["{Y -> TFun \"a\" []}"],"comm_fail_pair":null}

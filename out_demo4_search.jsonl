@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_stab_2q.conf","qprog":".\\tests\\demo\\qprog_D_stab2q_search.txt","goal":".\\tests\\demo\\goal_D_stab2q_search.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}","{}","{}","{}"],"sols_always":["{}","{}","{}","{}","{}","{}","{}","{}"],"comm_fail_pair":null}

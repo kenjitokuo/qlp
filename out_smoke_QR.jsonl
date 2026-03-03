@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_smoke_QR_noncomm.conf","qprog":".\\tests\\demo\\qprog_A1_QR.txt","goal":".\\tests\\demo\\goal_A1_QR.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":["Atom \"Q\" [TFun \"a\" []]","Atom \"R\" [TFun \"a\" []]"]}

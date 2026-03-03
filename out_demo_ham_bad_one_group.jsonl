@@ -1,2 +1,1 @@
 {"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_B_bad1_bad_one_group.txt","goal":".\\tests\\demo\\goal_B_bad1_bad_one_group.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":null}
-{"model":".\\tests\\conf_demo_ham_2q.conf","qprog":".\\tests\\demo\\qprog_B_bad1_bad_one_group.txt","goal":".\\tests\\demo\\goal_B_bad1_bad_one_group.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":null}
