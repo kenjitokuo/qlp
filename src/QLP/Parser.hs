@@ -34,10 +34,11 @@ parseAllOrRead p s what =
                  Nothing -> Left ("Parse error: " ++ what)
 
 parseAll :: ReadP a -> String -> String -> Either String a
-parseAll p s what =
-  case [x | (x, rest) <- readP_to_S (skipWS *> p <* skipWS <* eof) s, all isSpace rest] of
-    (x:_) -> Right x
-    []    -> Left ("Parse error: " ++ what)
+parseAll p s what = go (readP_to_S (skipWS *> p <* skipWS <* eof) s) where
+  go [] = Left ("Parse error: " ++ what)
+  go ((x, rest):xs)
+    | all isSpace rest = Right x
+    | otherwise = go xs
 
 -- whitespace + comments (# ... , % ...)
 skipWS :: ReadP ()
@@ -50,7 +51,7 @@ skipWS = skipMany (skipSpaces1 <|> comment) where
     pure ()
 
 lexeme :: ReadP a -> ReadP a
-lexeme p = skipWS *> p <* skipWS
+lexeme p = p <* skipWS
 
 symbol :: String -> ReadP String
 symbol t = lexeme (string t)
@@ -75,9 +76,11 @@ termP = varP <|> funP where
     if isVarName x then pure (TVar x) else pfail
   funP = do
     f <- ident
-    if isVarName f then pfail else do
-      margs <- option Nothing (Just <$> parens (sepBy termP (symbol ",")))
-      pure $ case margs of { Nothing -> TFun f []; Just as -> TFun f as }
+    if isVarName f then pfail else
+      ((do
+          args <- parens (sepBy termP (symbol ","))
+          pure (TFun f args))
+       <++ pure (TFun f []))
 
 isVarName :: String -> Bool
 isVarName [] = False
@@ -89,8 +92,10 @@ parens p = do { _ <- symbol "("; x <- p; _ <- symbol ")"; pure x }
 atomP :: ReadP Atom
 atomP = do
   p <- ident
-  margs <- option Nothing (Just <$> parens (sepBy termP (symbol ",")))
-  pure $ Atom p (maybe [] id margs)
+  ((do
+      args <- parens (sepBy termP (symbol ","))
+      pure (Atom p args))
+   <++ pure (Atom p []))
 
 -- Literal: "not" Atom | Atom
 litP :: ReadP (Either Atom Atom)
@@ -131,8 +136,13 @@ factP = do
   _ <- symbol ","
   b <- atomP
   _ <- symbol ")"
-  _ <- optional (symbol ".")
+  _ <- symbol "."
   pure (a,b)
 
 factsP :: ReadP [(Atom, Atom)]
-factsP = many factP
+factsP = go [] where
+  go acc =
+    ((do
+        f <- factP
+        go (f:acc))
+     <++ pure (reverse acc))
