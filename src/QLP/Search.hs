@@ -1,4 +1,4 @@
-﻿module QLP.Search
+module QLP.Search
   ( Rule(..)
   , Program
   , Comm
@@ -51,7 +51,9 @@ solveQLP' dbg comm _ (Goal [] []) s _ pending =
             then debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') []
             else debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') [s]
 
--- Positive selection: Goal (r:rs) ns.  We impose C(Γ,r) against the *current* context Γ (not the newly generated subgoals).
+-- Positive selection: Goal (r:rs) ns.
+-- If restPos is nonempty, this is BC(I), and we impose the side condition only between
+-- r and (negAtoms c ++ restPos). If restPos is empty, this is BC(III), and no side condition is added.
 solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
   concatMap step prog
   where
@@ -60,20 +62,24 @@ solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
       in case pickMatchPos r (posAtoms c) s of
            Nothing -> []
            Just (_matched, s', restPos) ->
-             let -- C(Γ,r): Γ is the current context (the other goals), not the premises introduced by c.
-                 sel     = applyAtom s' r
-                 ctxPre  = map (applyAtom s') (rs ++ ns)
-                 pending0 = addPendingPairs sel ctxPre pending
+             let sel = applyAtom s' r
+                 bcContext = map (applyAtom s') (negAtoms c ++ restPos)
+                 pending0 =
+                   if null restPos
+                     then pending
+                     else addPendingPairs sel bcContext pending
              in case normalizePending comm s' pending0 of
                   Left (aBad, bBad) ->
-                    debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctxPre) []
+                    debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) []
                   Right pending' ->
                     let newPosGoals = map (applyAtom s') (negAtoms c) ++ map (applyAtom s') rs
                         newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
-                        g'          = Goal newPosGoals newNegGoals
+                        g' = Goal newPosGoals newNegGoals
                     in solveQLP' dbg comm prog g' s' k1 pending'
 
--- Negative selection: Goal [] (sAtom:ns).  We impose C(Γ,sAtom) against the *current* context Γ = ns.
+-- Negative selection: Goal [] (sAtom:ns).
+-- If restNeg is nonempty, this is BC(II), and we impose the side condition only between
+-- sAtom and (restNeg ++ posAtoms c). If restNeg is empty, this is BC(IV), and no side condition is added.
 solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending =
   concatMap step prog
   where
@@ -82,16 +88,19 @@ solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending =
       in case pickMatchPos sAtom (negAtoms c) s of
            Nothing -> []
            Just (_matched, s', restNeg) ->
-             let sel      = applyAtom s' sAtom
-                 ctxPre   = map (applyAtom s') ns
-                 pending0 = addPendingPairs sel ctxPre pending
+             let sel = applyAtom s' sAtom
+                 bcContext = map (applyAtom s') (restNeg ++ posAtoms c)
+                 pending0 =
+                   if null restNeg
+                     then pending
+                     else addPendingPairs sel bcContext pending
              in case normalizePending comm s' pending0 of
                   Left (aBad, bBad) ->
-                    debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show ctxPre) []
+                    debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) []
                   Right pending' ->
                     let newPosGoals = map (applyAtom s') (posAtoms c)
                         newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
-                        g'          = Goal newPosGoals newNegGoals
+                        g' = Goal newPosGoals newNegGoals
                     in solveQLP' dbg comm prog g' s' k1 pending'
 
 isGroundTerm :: Term -> Bool
