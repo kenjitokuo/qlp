@@ -1,0 +1,1 @@
+[comm-fail neg] k=0 pair=Atom "ZZI" [] / Atom "XII" [] ctx=[Atom "XII" []]

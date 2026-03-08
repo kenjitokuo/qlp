@@ -2,7 +2,7 @@
 
 import QLP.Syntax
 import QLP.Unify
-import QLP.Search (Comm, Rule(..), Clause(..), Goal(..), QProgram, solve, solveQLPWithDebug)
+import QLP.Search (Comm, Rule(..), Clause(..), Goal(..), QProgram, solve, solveQLPWithDebug, solveQLPWithReason)
 import QLP.Backend.Hilbert hiding (Comm)
 import QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText)
 import qualified Data.Map.Strict as M
@@ -65,7 +65,6 @@ readQProgGoal qprogPath goalPath = do
                (Right qprog, Right goal) -> pure (Right (qprog, goal))
                (Left e1, _) -> pure (Left ("Failed to parse QProgram (Haskell readMaybe failed; text parse failed): " ++ e1))
                (_, Left e2) -> pure (Left ("Failed to parse Goal (Haskell readMaybe failed; text parse failed): " ++ e2))
-
 
 -- Normalize Atom for commutativity backends: by default, ignore arguments and keep only the predicate symbol.
 predOnly :: Atom -> Atom
@@ -135,7 +134,7 @@ parsePauliModelText s =
                      nm  = trim nm0
                      w   = normalizePauliWord rhs1
                  in if null nm then Right (mn, mp)
-                   else if not (isUpper (case nm of { (c:_) -> c; [] -> 'a' })) then Right (mn, mp)
+                    else if not (isUpper (case nm of { (c:_) -> c; [] -> 'a' })) then Right (mn, mp)
                     else Right (mn, M.insert nm w mp)
                else
                  Right (mn, mp)
@@ -246,41 +245,16 @@ classifyHilbert dbg xs commHilbert commAlways maxSol qprog goal =
       solsA = runSolveCore dbg commAlways  maxSol qprog goal
   in if not (null solsH) then (if any (not . isGroundSubstFor xs) solsH then ProvableNonGround else Provable, solsH, solsA) else if not (null solsA) then (NotApplicable, [], solsA) else (NoSolutions, [], [])
 
-pairs2 :: [a] -> [(a,a)]
-pairs2 [] = []
-pairs2 (x:xs) = [(x,y) | y <- xs] ++ pairs2 xs
-
-firstCommFailInAtoms :: Comm -> [Atom] -> Maybe (Atom, Atom)
-firstCommFailInAtoms comm atoms =
-  let bad (a,b) = not (comm a b)
-  in case filter bad (pairs2 atoms) of { [] -> Nothing; (p:_) -> Just p }
-
--- NotApplicable の原因は、goal 内の原子ではなく、goal を導く clause の body（negAtoms）内の非可換ペアであることが多い。
--- そこで、always 解（s0）で goal を具体化し、goal と unify できる head を持つ clause を探し、その body 内の最初の非可換ペアを返す。
-firstCommFailFromQProg :: Comm -> QProgram -> Goal -> Subst -> Maybe (Atom, Atom)
-firstCommFailFromQProg comm qprog goal s0 =
-  let goalAtoms = map (applyAtom s0) (wantPos goal ++ wantNeg goal)
-      inst su a = applyAtom s0 (applyAtom su a)
-      tryClause (Clause neg pos) =
-        let tryHead h =
-              let tryGoal g =
-                    case unifyAtom h g emptySubst of
-                      Nothing -> Nothing
-                      Just su ->
-                        case firstCommFailInAtoms comm (map (inst su) neg) of
-                          Just p  -> Just p
-                          Nothing -> firstCommFailInAtoms comm (map (inst su) (neg ++ pos))
-              in foldr (\g acc -> case acc of { Just _ -> acc; Nothing -> tryGoal g }) Nothing goalAtoms
-        in foldr (\h acc -> case acc of { Just _ -> acc; Nothing -> tryHead h }) Nothing pos
-      hit = foldr (\cl acc -> case acc of { Just _ -> acc; Nothing -> tryClause cl }) Nothing qprog
-      fallback1 = foldr (\(Clause neg _pos) acc -> case acc of { Just _ -> acc; Nothing -> firstCommFailInAtoms comm (map (applyAtom s0) neg) }) Nothing qprog
-  in case hit of { Just p -> Just p; Nothing -> fallback1 }
-
 classifyHilbertWithReason :: Bool -> [Name] -> Comm -> Comm -> Int -> QProgram -> Goal -> (Verdict, [Subst], [Subst], Maybe (Atom, Atom))
 classifyHilbertWithReason dbg xs commHilbert commAlways maxSol qprog goal =
-  let solsH = runSolveCore dbg commHilbert maxSol qprog goal
-      solsA = runSolveCore dbg commAlways  maxSol qprog goal
-  in if not (null solsH) then (if any (not . isGroundSubstFor xs) solsH then ProvableNonGround else Provable, solsH, solsA, Nothing) else case solsA of { (s0:_) -> (NotApplicable, [], solsA, firstCommFailFromQProg commHilbert qprog goal s0); [] -> (NoSolutions, [], [], Nothing) }
+  let (solsH0, failPairH) = solveQLPWithReason dbg commHilbert qprog goal emptySubst 0
+      solsH = take maxSol solsH0
+      solsA = runSolveCore dbg commAlways maxSol qprog goal
+  in if not (null solsH)
+       then (if any (not . isGroundSubstFor xs) solsH then ProvableNonGround else Provable, solsH, solsA, Nothing)
+       else case solsA of
+              (_:_) -> (NotApplicable, [], solsA, failPairH)
+              [] -> (NoSolutions, [], [], Nothing)
 
 selectComm :: Bool -> FilePath -> String -> Maybe FilePath -> IO (Either String (Comm, Comm))
 selectComm _dbg modelPath commMode0 commFactsPath = do
@@ -412,7 +386,6 @@ parseAtomArg s =
         Right ((a,_):_) -> Right a
         Left e          -> Left (e ++ " (input: " ++ show s ++ ")")
 
-
 runCommCheck :: Bool -> FilePath -> String -> Maybe FilePath -> String -> String -> IO ()
 runCommCheck dbg modelPath commMode0 commFactsPath a b = do
   ec <- selectComm dbg modelPath commMode0 commFactsPath
@@ -425,7 +398,6 @@ runCommCheck dbg modelPath commMode0 commFactsPath a b = do
         (Right a1, Right b1) -> do
           let ok = commH a1 b1
           putStrLn (commCheckJsonLine modelPath (map toLower commMode0) a b ok)
-
 
 sampleQProg :: QProgram
 sampleQProg = [ Clause {negAtoms = [Atom "P" [TVar "X"]], posAtoms = [Atom "Q" [TVar "X"]]}, Clause {negAtoms = [], posAtoms = [Atom "P" [TFun "a" []]]}, Clause {negAtoms = [], posAtoms = [Atom "R" [TFun "a" []]]} ]

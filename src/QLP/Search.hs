@@ -1,4 +1,4 @@
-module QLP.Search
+﻿module QLP.Search
   ( Rule(..)
   , Program
   , Comm
@@ -8,6 +8,7 @@ module QLP.Search
   , solve
   , solveQLP
   , solveQLPWithDebug
+  , solveQLPWithReason
   , pairs
   , commutesAllAtoms
   , pickMatchPos
@@ -32,45 +33,54 @@ data Rule = Rule { headAtom :: Atom, bodyAtoms :: [Atom] } deriving (Eq, Show, R
 type Program = [Rule]
 type Comm = Atom -> Atom -> Bool
 
+data SearchResult = SearchResult { srSols :: [Subst], srFailPair :: Maybe (Atom, Atom) }
+
+emptySearchResult :: SearchResult
+emptySearchResult = SearchResult [] Nothing
+
+mergeSearchResult :: SearchResult -> SearchResult -> SearchResult
+mergeSearchResult (SearchResult sols1 fail1) (SearchResult sols2 fail2) = SearchResult (sols1 ++ sols2) (case fail1 of { Just p -> Just p; Nothing -> fail2 })
+
 solveQLP :: Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
 solveQLP = solveQLPWithDebug True
 
 solveQLPWithDebug :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> [Subst]
-solveQLPWithDebug dbg comm prog goal s k = solveQLP' dbg comm prog goal s k []
+solveQLPWithDebug dbg comm prog goal s k = srSols (solveQLP' dbg comm prog goal s k [])
+
+solveQLPWithReason :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> ([Subst], Maybe (Atom, Atom))
+solveQLPWithReason dbg comm prog goal s k = let r = solveQLP' dbg comm prog goal s k [] in (srSols r, srFailPair r)
 
 -- pending stores commutativity obligations (a,b) that must commute once they become ground.
-solveQLP' :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> [(Atom, Atom)] -> [Subst]
+solveQLP' :: Bool -> Comm -> QProgram -> Goal -> Subst -> Int -> [(Atom, Atom)] -> SearchResult
 solveQLP' dbg comm _ (Goal [] []) s _ pending =
   case normalizePending comm s pending of
-    Left (aBad, bBad) -> debugIf dbg ("[comm-fail final] pair=" ++ show aBad ++ " / " ++ show bBad) []
+    Left (aBad, bBad) -> debugIf dbg ("[comm-fail final] pair=" ++ show aBad ++ " / " ++ show bBad) (SearchResult [] (Just (aBad, bBad)))
     Right pending' ->
       case pending' of
-        [] -> [s]
+        [] -> SearchResult [s] Nothing
         (a', b'):_ ->
           if pendingMustBeGroundAtEnd
-            then debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') []
-            else debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') [s]
+            then debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') emptySearchResult
+            else debugIf dbg ("[comm-pending final nonground] " ++ show a' ++ " / " ++ show b') (SearchResult [s] Nothing)
 
 -- Positive selection: Goal (r:rs) ns.
--- If restPos is nonempty, this is BC(I), and we impose the side condition only between
--- r and (negAtoms c ++ restPos). If restPos is empty, this is BC(III), and no side condition is added.
-solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
-  concatMap step prog
+-- BC(III) applies only when the chosen clause is a positive unit clause, i.e. negAtoms c = []
+-- and, after removing the matched positive literal, no positive literal remains.
+-- Otherwise this is BC(I), and we impose the side condition between r and (negAtoms c ++ restPos).
+solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending = foldr mergeSearchResult emptySearchResult (map step prog)
   where
     step c0 =
       let (c, k1) = renameClause k c0
       in case pickMatchPos r (posAtoms c) s of
-           Nothing -> []
+           Nothing -> emptySearchResult
            Just (_matched, s', restPos) ->
              let sel = applyAtom s' r
                  bcContext = map (applyAtom s') (negAtoms c ++ restPos)
-                 pending0 =
-                   if null restPos
-                     then pending
-                     else addPendingPairs sel bcContext pending
+                 isBCIII = null (negAtoms c) && null restPos
+                 pending0 = if isBCIII then pending else addPendingPairs sel bcContext pending
              in case normalizePending comm s' pending0 of
                   Left (aBad, bBad) ->
-                    debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) []
+                    debugIf dbg ("[comm-fail pos] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) (SearchResult [] (Just (aBad, bBad)))
                   Right pending' ->
                     let newPosGoals = map (applyAtom s') (negAtoms c) ++ map (applyAtom s') rs
                         newNegGoals = map (applyAtom s') restPos ++ map (applyAtom s') ns
@@ -78,25 +88,23 @@ solveQLP' dbg comm prog (Goal (r:rs) ns) s k pending =
                     in solveQLP' dbg comm prog g' s' k1 pending'
 
 -- Negative selection: Goal [] (sAtom:ns).
--- If restNeg is nonempty, this is BC(II), and we impose the side condition only between
--- sAtom and (restNeg ++ posAtoms c). If restNeg is empty, this is BC(IV), and no side condition is added.
-solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending =
-  concatMap step prog
+-- BC(IV) applies only when the chosen clause is a negative unit clause, i.e. posAtoms c = []
+-- and, after removing the matched negative literal, no negative literal remains.
+-- Otherwise this is BC(II), and we impose the side condition between sAtom and (restNeg ++ posAtoms c).
+solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending = foldr mergeSearchResult emptySearchResult (map step prog)
   where
     step c0 =
       let (c, k1) = renameClause k c0
       in case pickMatchPos sAtom (negAtoms c) s of
-           Nothing -> []
+           Nothing -> emptySearchResult
            Just (_matched, s', restNeg) ->
              let sel = applyAtom s' sAtom
                  bcContext = map (applyAtom s') (restNeg ++ posAtoms c)
-                 pending0 =
-                   if null restNeg
-                     then pending
-                     else addPendingPairs sel bcContext pending
+                 isBCIV = null (posAtoms c) && null restNeg
+                 pending0 = if isBCIV then pending else addPendingPairs sel bcContext pending
              in case normalizePending comm s' pending0 of
                   Left (aBad, bBad) ->
-                    debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) []
+                    debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) (SearchResult [] (Just (aBad, bBad)))
                   Right pending' ->
                     let newPosGoals = map (applyAtom s') (posAtoms c)
                         newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
@@ -188,8 +196,7 @@ renameRule k r =
 
 solve :: Program -> [Atom] -> Subst -> Int -> [Subst]
 solve _ [] s _ = [s]
-solve prog (g:gs) s k =
-  concatMap (step k) prog
+solve prog (g:gs) s k = concatMap (step k) prog
   where
     step k0 r0 =
       let (r, k1) = renameRule k0 r0

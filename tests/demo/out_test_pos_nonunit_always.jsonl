@@ -1,0 +1,1 @@
+{"model":"hilbert.conf","qprog":".\\tests\\demo\\qprog_test_pos_nonunit.txt","goal":".\\tests\\demo\\goal_test_pos_nonunit.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}

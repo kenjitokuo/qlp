@@ -1,0 +1,2 @@
+{"model":".\\tests\\conf_demo_pauli_3q.conf","qprog":".\\tests\\demo\\qprog_F_demoD_ghz_style_incompat.txt","goal":".\\tests\\demo\\goal_F_demoD_ghz_style_incompat.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":["XII","ZZI"]}
+{"model":".\\tests\\conf_demo_pauli_3q.conf","qprog":".\\tests\\demo\\qprog_F_demoD_ghz_style_incompat.txt","goal":".\\tests\\demo\\goal_F_demoD_ghz_style_incompat.txt","max_sol":20,"vars":[],"verdict":"not-applicable","sols_hilbert":[],"sols_always":["{}"],"comm_fail_pair":["XII","ZZI"]}

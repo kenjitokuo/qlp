@@ -1,0 +1,1 @@
+{"model":".\\tests\\conf_demo_pauli_3q.conf","qprog":".\\tests\\demo\\qprog_test_true_unit_neg.txt","goal":".\\tests\\demo\\goal_test_true_unit_neg.txt","max_sol":20,"vars":[],"verdict":"provable","sols_hilbert":["{}"],"sols_always":["{}"],"comm_fail_pair":null}
