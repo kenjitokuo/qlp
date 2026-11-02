@@ -11,6 +11,14 @@ Specify a model file:
 
 If the file is missing, the program falls back to an internal default model.
 
+### Tests
+
+Unit tests (unification, BC(I)-BC(IV), pending commutativity obligations, failing pairs, parser, pauli/facts backends):
+    stack test        (or: cabal test)
+
+End-to-end CLI checks against the demo artifacts (bash):
+    tests/run-cli-tests.sh "$(stack exec -- which qlp)"
+
 
 ### Model file format (minimal)
 
