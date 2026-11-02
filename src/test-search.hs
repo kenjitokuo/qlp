@@ -57,7 +57,7 @@ main = do
   -- Clause: s(X), t(X) ; p(X)
   -- Goal:   ~s(a)
   -- Expected after backchaining:
-  --   newPos = [p(a)], newNeg = [t(a)]
+  --   newPos = [t(a)] (remaining negative atoms), newNeg = [p(a)] (positive atoms)
   -- Side condition should be checked only between s(a) and [t(a), p(a)].
   let progBC2 =
         [ Clause [a "s" [v "X"], a "t" [v "X"]] [a "p" [v "X"]] ]

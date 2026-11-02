@@ -1,4 +1,4 @@
-﻿module QLP.Search
+module QLP.Search
   ( Rule(..)
   , Program
   , Comm
@@ -106,8 +106,11 @@ solveQLP' dbg comm prog (Goal [] (sAtom:ns)) s k pending = foldr mergeSearchResu
                   Left (aBad, bBad) ->
                     debugIf dbg ("[comm-fail neg] k=" ++ show k1 ++ " pair=" ++ show aBad ++ " / " ++ show bBad ++ " ctx=" ++ show bcContext) (SearchResult [] (Just (aBad, bBad)))
                   Right pending' ->
-                    let newPosGoals = map (applyAtom s') (posAtoms c)
-                        newNegGoals = map (applyAtom s') restNeg ++ map (applyAtom s') ns
+                    -- BC(II)/BC(IV): Gamma |- ~r, Delta  becomes  Gamma |- p_1..^p_k..p_m, ~q_1..~q_n, Delta.
+                    -- The remaining negative atoms of the clause become positive goals,
+                    -- and the positive atoms of the clause become negative goals.
+                    let newPosGoals = map (applyAtom s') restNeg
+                        newNegGoals = map (applyAtom s') (posAtoms c) ++ map (applyAtom s') ns
                         g' = Goal newPosGoals newNegGoals
                     in solveQLP' dbg comm prog g' s' k1 pending'
 
@@ -161,10 +164,16 @@ varsClause (Clause ns ps) = S.unions (map varsAtom (ns ++ ps))
 renameClause :: Int -> Clause -> (Clause, Int)
 renameClause k c =
   let vs = S.toList (varsClause c)
-      m = M.fromList [ (x, x ++ "_" ++ show i) | (x, i) <- zip vs [k..] ]
+      m = M.fromList [ (x, freshName x i) | (x, i) <- zip vs [k..] ]
       c' = Clause (map (renameAtom m) (negAtoms c)) (map (renameAtom m) (posAtoms c))
       k' = k + length vs
   in (c', k')
+
+-- Name used when standardizing a clause apart.  The separator '#' cannot occur in a
+-- variable written in the text format ('#' starts a comment there), so renamed clause
+-- variables can never clash with variables of the goal or of the input program.
+freshName :: Name -> Int -> Name
+freshName x i = x ++ "#" ++ show i
 
 data Clause = Clause { negAtoms :: [Atom], posAtoms :: [Atom] } deriving (Eq, Show, Read)
 data Goal = Goal { wantPos :: [Atom], wantNeg :: [Atom] } deriving (Eq, Show, Read)
@@ -189,7 +198,7 @@ renameAtom m (Atom p xs) = Atom p (map (renameTerm m) xs)
 renameRule :: Int -> Rule -> (Rule, Int)
 renameRule k r =
   let vs = S.toList (varsRule r)
-      m = M.fromList [ (x, x ++ "_" ++ show i) | (x, i) <- zip vs [k..] ]
+      m = M.fromList [ (x, freshName x i) | (x, i) <- zip vs [k..] ]
       r' = Rule (renameAtom m (headAtom r)) (map (renameAtom m) (bodyAtoms r))
       k' = k + length vs
   in (r', k')

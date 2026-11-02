@@ -23,6 +23,8 @@ executable qlp
                        QLP.Search
                        QLP.Backend.Hilbert
                        QLP.Backend.HilbertVec
+                       QLP.Backend.Pauli
+                       QLP.Backend.Facts
                        QLP.Parser
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
@@ -38,6 +40,22 @@ executable qlp
                        -Wmissing-home-modules
                        -Wpartial-fields
                        -Wredundant-constraints
+
+test-suite qlp-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      src
+                       tests/unit
+  main-is:             QLPTests.hs
+  other-modules:       QLP.Syntax
+                       QLP.Unify
+                       QLP.Search
+                       QLP.Parser
+                       QLP.Backend.Pauli
+                       QLP.Backend.Facts
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       containers
+  ghc-options:         -Wall
 
 source-repository head
   type:     git

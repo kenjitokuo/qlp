@@ -1,19 +1,21 @@
-﻿module Main (main) where
+module Main (main) where
 
 import QLP.Syntax
 import QLP.Unify
 import QLP.Search (Comm, Rule(..), Clause(..), Goal(..), QProgram, solve, solveQLPWithDebug, solveQLPWithReason)
 import QLP.Backend.Hilbert hiding (Comm)
-import QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText)
+import QLP.Parser (parseQProgramText, parseGoalText, parseCommFactsText, parseAtomText)
+import QLP.Backend.Pauli (parsePauliModelText, commPauli)
+import QLP.Backend.Facts (mkCommFacts)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import System.Environment (getArgs)
-import Data.Char (toLower, isSpace, isUpper)
+import Data.Char (toLower)
 import Text.Read (readMaybe)
 import System.IO (withFile, IOMode(ReadMode), hSetEncoding, hGetContents)
 import Control.Exception (try, IOException, evaluate, displayException)
 import GHC.IO.Encoding (mkTextEncoding)
-import Data.List (intercalate, dropWhileEnd)
+import Data.List (intercalate)
 import System.Exit (exitFailure)
 
 showSubst :: Subst -> String
@@ -79,76 +81,6 @@ readCommFacts fp = do
       let normalizeFacts = map (\(a,b) -> (predOnly a, predOnly b))
       in pure (either (Left . ("Failed to parse commutativity facts: " ++)) (Right . normalizeFacts) (parseCommFactsText s))
 
-mkCommFacts :: [(Atom, Atom)] -> Comm
-mkCommFacts facts0 a b =
-  let facts = map (\(x,y) -> (predOnly x, predOnly y)) facts0
-      Atom pa _ = predOnly a
-      Atom pb _ = predOnly b
-      okPair (Atom px _) (Atom py _) = (px == pa && py == pb) || (px == pb && py == pa)
-  in pa == pb || any (\(x,y) -> okPair x y) facts
-
-trim :: String -> String
-trim = dropWhile isSpace . dropWhileEnd isSpace
-
-stripComment :: String -> String
-stripComment s = takeWhile (/= '#') s
-
-takeName :: String -> String
-takeName s =
-  let t = trim s
-  in takeWhile (\c -> c /= '(' && not (isSpace c)) t
-
-isPauliChar :: Char -> Bool
-isPauliChar c = c == 'I' || c == 'X' || c == 'Y' || c == 'Z'
-
-normalizePauliWord :: String -> String
-normalizePauliWord = filter (not . isSpace)
-
-commutesPauli :: String -> String -> Either String Bool
-commutesPauli w1 w2 =
-  if length w1 /= length w2 then Left ("Pauli words have different lengths: " ++ show (length w1, length w2))
-  else if any (not . isPauliChar) w1 || any (not . isPauliChar) w2 then Left ("Pauli words must be over {I,X,Y,Z}: " ++ show (w1, w2))
-  else
-    let anticomm (a,b) = a /= 'I' && b /= 'I' && a /= b
-        k = length (filter anticomm (zip w1 w2))
-    in Right (k `mod` 2 == 0)
-
--- Pauli モード用：混在 conf でも壊れないように「P(...) = <word>」だけ拾う。
--- それ以外の key=value（dim=..., eps=..., Q=... など）は無視する。
-parsePauliModelText :: String -> Either String (Int, M.Map String String)
-parsePauliModelText s =
-  let ls  = [trim (stripComment l) | l <- lines s]
-      ls1 = filter (not . null) ls
-      step (mn, mp) l =
-        case break (=='=') l of
-          (lhs,'=':rhs0) ->
-            let lhs1 = trim lhs
-                rhs1 = trim rhs0
-                lhsLower = map toLower lhs1
-            in if lhsLower == "n" then
-                 case readMaybe rhs1 of
-                   Nothing -> Left ("Failed to parse n in model: " ++ l)
-                   Just k  -> Right (Just k, mp)
-               else if '(' `elem` lhs1 then
-                 let nm0 = takeName lhs1
-                     nm  = trim nm0
-                     w   = normalizePauliWord rhs1
-                 in if null nm then Right (mn, mp)
-                    else if not (isUpper (case nm of { (c:_) -> c; [] -> 'a' })) then Right (mn, mp)
-                    else Right (mn, M.insert nm w mp)
-               else
-                 Right (mn, mp)
-          _ -> Right (mn, mp)  -- '=' がない行は無視
-      go (mn, mp) [] = case mn of { Nothing -> Left "Missing n = <int> in model"; Just k -> Right (k, mp) }
-      go st (l:rest) = do { st' <- step st l; go st' rest }
-  in do
-    (n, mp0) <- go (Nothing, M.empty) ls1
-    let badLen  = [(k,w) | (k,w) <- M.toList mp0, length w /= n]
-    let badChar = [(k,w) | (k,w) <- M.toList mp0, any (not . isPauliChar) w]
-    if not (null badLen) then Left ("Pauli word length mismatch (expected n=" ++ show n ++ "): " ++ show badLen)
-    else if not (null badChar) then Left ("Pauli word has invalid chars (allowed {I,X,Y,Z}): " ++ show badChar)
-    else Right (n, mp0)
-
 mkCommPauliFromModelFile :: FilePath -> IO (Either String Comm)
 mkCommPauliFromModelFile fp = do
   e <- readFileStrictUtf8OrCP932 fp
@@ -157,16 +89,7 @@ mkCommPauliFromModelFile fp = do
     Right txt ->
       case parsePauliModelText txt of
         Left msg -> pure (Left msg)
-        Right (_n, mp) ->
-          let comm :: Comm
-              comm (Atom p _) (Atom q _) =
-                case (M.lookup p mp, M.lookup q mp) of
-                  (Just w1, Just w2) ->
-                    case commutesPauli w1 w2 of
-                      Right b  -> b
-                      Left msg -> error ("commutesPauli: " ++ msg)
-                  _ -> True  -- 未定義は commutes に倒す（Hilbert の Unknown と同じ方針）
-          in pure (Right comm)
+        Right (_n, pm) -> pure (Right (commPauli pm))
 
 runSmoke :: Bool -> FilePath -> String -> IO ()
 runSmoke dbg modelPath commMode0 = do
@@ -275,7 +198,7 @@ selectComm _dbg modelPath commMode0 commFactsPath = do
       ep <- mkCommPauliFromModelFile modelPath
       case ep of
         Left msg -> pure (Left ("Failed to load pauli model: " ++ msg))
-        Right commPauli -> pure (Right (commPauli, commAlways))
+        Right commP -> pure (Right (commP, commAlways))
     _ -> do
       model <- loadModelOrDefault modelPath
       pure (Right (commutes model, commAlways))
@@ -382,9 +305,9 @@ parseAtomArg s =
   case (readMaybe s :: Maybe Atom) of
     Just a  -> Right a
     Nothing ->
-      case parseCommFactsText ("comm(" ++ s ++ ",DUMMY).") of
-        Right ((a,_):_) -> Right a
-        Left e          -> Left (e ++ " (input: " ++ show s ++ ")")
+      case parseAtomText s of
+        Right a -> Right a
+        Left e  -> Left (e ++ " (input: " ++ show s ++ ")")
 
 runCommCheck :: Bool -> FilePath -> String -> Maybe FilePath -> String -> String -> IO ()
 runCommCheck dbg modelPath commMode0 commFactsPath a b = do

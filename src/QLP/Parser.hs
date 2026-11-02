@@ -1,4 +1,4 @@
-﻿module QLP.Parser (
+module QLP.Parser (
   parseQProgramText,
   parseGoalText,
   parseCommFactsText,
@@ -60,7 +60,12 @@ kw :: String -> ReadP String
 kw w = lexeme $ do
   let cs = map toLower w
   xs <- count (length cs) (satisfy isAlphaNum)
-  if map toLower xs == cs then pure xs else pfail
+  if map toLower xs /= cs then pfail else do
+    -- keyword boundary: "nothing(a)" or "notp" is an atom, not "not" + atom.
+    rest <- look
+    case rest of
+      (c:_) | isAlphaNum c || c == '_' -> pfail
+      _ -> pure xs
 
 ident :: ReadP String
 ident = lexeme $ do
@@ -101,7 +106,10 @@ atomP = do
 litP :: ReadP (Either Atom Atom)
 litP = negP <|> posP where
   negP = do { _ <- kw "not"; a <- atomP; pure (Left a) }
-  posP = do { a <- atomP; pure (Right a) }
+  posP = do
+    a@(Atom p _) <- atomP
+    -- avoid an ambiguous parse of "not p" as two tokens of a positive atom named "not"
+    if map toLower p == "not" then pfail else pure (Right a)
 
 -- Clause syntax (paper-like): lit1 ; lit2 ; ... .
 -- negAtoms = atoms preceded by "not", posAtoms = others.
